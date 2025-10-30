@@ -69,6 +69,13 @@ jwt:
   access-token-expiration: 1800000 # 30分钟 (毫秒)
   refresh-token-expiration: 604800000 # 7天 (毫秒)
 
+# 阿里云短信配置
+aliyun:
+  access-key-id: ${aliyun-access-key-id}
+  access-key-secret: ${aliyun-access-key-secret}
+  template-code: ${aliyun-template-code}
+  sign-name: ${aliyun-sign-name}
+
 # 日志
 logging:
   level:
