@@ -2,6 +2,7 @@ package com.achobeta.themis.common.util;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,7 @@ public class JwtUtil {
     private Long accessTokenExpiration;
 
     @Value("${jwt.refresh-token-expiration}")
+    @Getter
     private Long refreshTokenExpiration;
 
     private SecretKey getSigningKey() {

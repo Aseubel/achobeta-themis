@@ -4,14 +4,17 @@ import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.exception.BusinessException;
+import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
 import com.achobeta.themis.domain.user.model.UserModel;
+import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.service.IUserService;
+import com.achobeta.themis.common.vo.AuthResponseVO;
+import com.achobeta.themis.common.vo.LoginRequestVO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 前端http服务请求控制器
@@ -45,6 +48,83 @@ public class UserController implements UserClient {
         }
     }
 
+    /**
+     * 用户登录
+     * @param request
+     * @return
+     */
+    @PostMapping("/login")
+    public ApiResponse<AuthResponseVO> login(@Valid @RequestBody LoginRequestVO request) {
+        try {
+            AuthResponseVO response = userService.login(request);
+            return ApiResponse.success("登录成功", response);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("用户登录失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Refresh token 令牌刷新
+     * @param refreshToken
+     * @return
+     */
+    @PostMapping("/refresh-token")
+    public ApiResponse<AuthResponseVO> refreshToken(@NotBlank(message = "刷新令牌不能为空") @RequestParam("refreshToken") String refreshToken) {
+        try {
+            AuthResponseVO response = userService.refreshToken(refreshToken);
+            return ApiResponse.success("刷新成功", response);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("刷新令牌失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 发送验证码
+     * @param phone
+     * @return
+     */
+    @PostMapping("/send-verify-code")
+    public ApiResponse<String> sendVerifyCode(@NotBlank(message = "手机号码不能为空") @RequestParam("phone") String phone) {
+        try {
+            userService.sendVerifyCode(phone);
+            return ApiResponse.success("验证码发送成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("验证码发送失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 忘记密码
+     * @param request
+     * @return
+     */
+    @PostMapping("/forget")
+    public ApiResponse<String> forgetPassword(@Valid @RequestBody ForgetPasswdRequestVO request) {
+        try {
+            userService.forgetPassword(request);
+            return ApiResponse.success("密码修改成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("密码修改失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 转换用户模型为用户信息响应
+     * @param model
+     * @return
+     */
     private UserInfoResponse ofUserInfoResponse(UserModel model) {
         UserInfoResponse userInfo = UserInfoResponse.builder()
                 .id(model.getUser().getId())

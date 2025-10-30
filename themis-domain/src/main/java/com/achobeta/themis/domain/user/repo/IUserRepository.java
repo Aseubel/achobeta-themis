@@ -10,4 +10,10 @@ public interface IUserRepository {
 
     User findUserByUserId(Long userId);
 
+    User findUserByPhone(String phone);
+
+    void save(User user);
+
+    void update(User user);
+
 }
