@@ -3,6 +3,7 @@ package com.achobeta.themis.trigger.user.http;
 import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
+import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
 import com.achobeta.themis.domain.user.model.UserModel;
@@ -33,6 +34,7 @@ public class UserController implements UserClient {
     /**
      * 获取当前用户信息
      */
+    @LoginRequired
     @GetMapping("/info")
     public ApiResponse<UserInfoResponse> getUserInfo(
             @RequestParam("userId") Long userId) {
