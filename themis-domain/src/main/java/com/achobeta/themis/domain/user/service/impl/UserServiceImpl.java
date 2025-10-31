@@ -4,9 +4,9 @@ import cn.hutool.core.util.ObjectUtil;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.redis.service.RedissonService;
 import com.achobeta.themis.common.util.JwtUtil;
-import com.achobeta.themis.common.vo.AuthResponseVO;
-import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
-import com.achobeta.themis.common.vo.LoginRequestVO;
+import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
+import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
+import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.repo.IUserRepository;
@@ -100,6 +100,12 @@ public class UserServiceImpl implements IUserService{
 
     @Override
     public AuthResponseVO refreshToken(String refreshToken) {
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
         String refreshTokenKey = "refresh_token:" + jwtUtil.getUserIdFromToken(refreshToken);
         String storedRefreshToken = redissonService.getValue(refreshTokenKey);
         if (ObjectUtil.isEmpty(storedRefreshToken)) {
@@ -161,5 +167,18 @@ public class UserServiceImpl implements IUserService{
 
 
         verifyCodeService.sendVerifyCode(phone, code);
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        // 校验刷新令牌是否有效
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        String refreshTokenKey = "refresh_token:" + jwtUtil.getUserIdFromToken(refreshToken);
+        redissonService.remove(refreshTokenKey);
     }
 }

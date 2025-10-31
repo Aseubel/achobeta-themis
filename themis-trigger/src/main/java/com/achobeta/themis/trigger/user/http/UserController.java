@@ -4,12 +4,11 @@ import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
+import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
 import com.achobeta.themis.domain.user.model.UserModel;
-import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.service.IUserService;
-import com.achobeta.themis.common.vo.AuthResponseVO;
-import com.achobeta.themis.common.vo.LoginRequestVO;
+import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
+import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +61,22 @@ public class UserController implements UserClient {
             throw e;
         } catch (Exception e) {
             log.error("用户登录失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 登出用户
+     */
+    @PostMapping("/logout")
+    public ApiResponse<String> logout(@NotBlank(message = "刷新令牌不能为空") @RequestParam("refreshToken") String refreshToken) {
+        try {
+            userService.logout(refreshToken);
+            return ApiResponse.success("登出成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("用户登出失败", e);
             return ApiResponse.error(e.getMessage());
         }
     }
@@ -133,4 +148,5 @@ public class UserController implements UserClient {
                 .build();
         return userInfo;
     }
+
 }
