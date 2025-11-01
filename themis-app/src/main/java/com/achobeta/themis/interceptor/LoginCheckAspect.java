@@ -30,7 +30,6 @@ public class LoginCheckAspect {
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attrs != null ? attrs.getRequest() : null;
-        HttpServletResponse response = attrs != null ? attrs.getResponse() : null;
         if (request == null) {
             throw new UnauthorizedException("无法获取请求对象，禁止访问！");
         }
@@ -42,23 +41,10 @@ public class LoginCheckAspect {
         if (accessTokenValid) {
             return joinPoint.proceed();
         }
-        // accessToken过期/无效，检测refreshToken
-        String refreshToken = request.getHeader("refresh-token");
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new UnauthorizedException("登录凭证已失效，请重新登录！");
-        }
-        if (!jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
-            throw new UnauthorizedException("刷新凭证已失效，请重新登录！");
-        }
-        // 生成新accessToken并下发
-        Long userId = jwtUtil.getUserIdFromToken(refreshToken);
-        String username = jwtUtil.getUsernameFromToken(refreshToken);
-        String newAccessToken = jwtUtil.generateAccessToken(userId, username);
-        if (response != null) {
-            response.setHeader("access-token", newAccessToken);
+        else {
+            throw new UnauthorizedException("未登录或token无效，禁止访问！");
         }
 
-        return joinPoint.proceed();
     }
 }
 
