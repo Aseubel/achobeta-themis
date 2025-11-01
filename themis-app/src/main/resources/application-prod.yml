@@ -9,7 +9,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/achobeta_themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
+    url: jdbc:mysql://mysql:3306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
     username: root
     password: 123456
     hikari:
@@ -48,7 +48,7 @@ thread:
 
 #Redis 配置
 redis:
-  key-prefix: "weave-plus:"
+  key-prefix: "achobeta-themis:"
   time-to-live: 86400000 # 1天 (毫秒)
   sdk:
     config:

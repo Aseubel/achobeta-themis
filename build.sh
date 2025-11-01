@@ -35,8 +35,8 @@ fi
 new(){
   docker stop themis
   docker rm themis
-  docker rmi achobeta/themis:latest
-  $COMPOSE_COMMAND -f docker-compose-app.yml up
+  docker rmi crpi-5tzwiznwaw34lfca.cn-guangzhou.personal.cr.aliyuncs.com/aseubel/themis:latest
+  $COMPOSE_COMMAND -f docker-compose-app.yml up -d
 }
 
 # 启动基础环境（必须）
