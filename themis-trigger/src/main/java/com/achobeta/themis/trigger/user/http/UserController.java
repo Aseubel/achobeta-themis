@@ -67,6 +67,8 @@ public class UserController implements UserClient {
 
     /**
      * 登出用户
+     * @param refreshToken
+     * @return
      */
     @LoginRequired
     @PostMapping("/logout")
@@ -84,6 +86,8 @@ public class UserController implements UserClient {
 
     /**
      * 批量注销用户所有登录会话
+     * @param userId
+     * @return
      */
     @LoginRequired
     @PostMapping("/logout-all")
