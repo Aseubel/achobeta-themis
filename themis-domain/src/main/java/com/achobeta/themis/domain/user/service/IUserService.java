@@ -24,4 +24,6 @@ public interface IUserService {
     void sendVerifyCode(String phone);
 
      void logout(String refreshToken);
+
+    void logoutAll(Long userId);
 }

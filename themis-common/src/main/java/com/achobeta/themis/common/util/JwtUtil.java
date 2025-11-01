@@ -49,7 +49,7 @@ public class JwtUtil {
     /**
      * 生成刷新令牌
      */
-    public String generateRefreshToken(Long userId, String username) {
+    public String generateRefreshToken(Long userId, String username, String clientId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
@@ -94,6 +94,16 @@ public class JwtUtil {
     public String getTokenTypeFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? claims.get("tokenType").toString() : null;
+    }
+
+    /**
+     * 从token中获取客户端ID
+     * @param refreshToken
+     * @return
+     */
+    public String getClientIdFromToken(String refreshToken) {
+        Claims claims = getClaimsFromToken(refreshToken);
+        return claims != null ? claims.get("clientId").toString() : null;
     }
 
     /**
@@ -168,4 +178,5 @@ public class JwtUtil {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? claims.getExpiration() : null;
     }
+
 }
