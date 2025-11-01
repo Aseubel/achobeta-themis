@@ -4,7 +4,7 @@ version: '3.3'
 # 你需要修改system为你自身系统的仓库名
 services:
   weave:
-    image: achobeta/themis:latest
+    image: crpi-5tzwiznwaw34lfca.cn-guangzhou.personal.cr.aliyuncs.com/aseubel/themis:latest
     container_name: themis
     restart: on-failure
     ports:
@@ -13,11 +13,15 @@ services:
       - TZ=PRC
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=123456
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ahcobeta_themis?serverTimezone=UTC&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/themis?serverTimezone=UTC&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
       - SPRING_HIKARI_POOL_NAME=Retail_HikariCP
       - SERVER_PORT=611
       - JWT_SECRET=YOUR_JWT_SECRET
+      - aliyun-access-key-id=YOUR_ACCESS_KEY_ID
+      - aliyun-access-key-secret=YOUR_ACCESS_KEY_SECRET
+      - aliyun-template-code=YOUR_TEMPLATE_CODE
+      - aliyun-sign-name=YOUR_SIGN_NAME
     volumes:
       - ./log:/data/log
     logging:
