@@ -2,4 +2,4 @@ spring:
   config:
     name: themis-app
   profiles:
-    active: prod
+    active: dev
