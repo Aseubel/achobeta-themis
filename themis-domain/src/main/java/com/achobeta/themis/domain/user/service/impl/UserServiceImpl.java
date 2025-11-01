@@ -4,9 +4,9 @@ import cn.hutool.core.util.ObjectUtil;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.redis.service.RedissonService;
 import com.achobeta.themis.common.util.JwtUtil;
-import com.achobeta.themis.common.vo.AuthResponseVO;
-import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
-import com.achobeta.themis.common.vo.LoginRequestVO;
+import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
+import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
+import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.repo.IUserRepository;
@@ -14,12 +14,15 @@ import com.achobeta.themis.domain.user.service.IUserService;
 import com.achobeta.themis.domain.user.service.IVerifyCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RMap;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Aseubel
@@ -61,34 +64,62 @@ public class UserServiceImpl implements IUserService{
         return result;
     }
 
+    /**
+     * 登录
+     * @param request
+     * @return
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public AuthResponseVO login(LoginRequestVO request) {
-        String password = bCryptEncoder.encode(request.getPassword());
         User user = userRepository.findUserByPhone(request.getPhone());
-
         if (ObjectUtil.isEmpty(user)) {
-            // 为新用户添加账号
-            user = User.builder()
-                    .username(UUID.randomUUID().toString().substring(0, 8))
-                    .password(password)
-                    .phone(request.getPhone())
-                    .userType(request.getUserType())
-                    .build();
-            userRepository.save(user);
-            user.setUserId(String.format("%06d", user.getId()));
-            userRepository.update(user);
+            // 注册用户
+            String lockKey = "user_sign_up:" + request.getPhone();
+            RLock lock = redissonService.getLock(lockKey);
+            boolean isLocked = false;
+            try {
+                isLocked = lock.tryLock(3, 5, TimeUnit.SECONDS);
+                if (isLocked) {
+                    User existingUser = userRepository.findUserByPhone(request.getPhone());
+                    if (existingUser != null) {
+                        throw new BusinessException("该手机号已注册");
+                    }
+                    user = User.builder()
+                            .username(UUID.randomUUID().toString().substring(0, 8))
+                            .password(bCryptEncoder.encode(request.getPassword()))
+                            .phone(request.getPhone())
+                            .userType(request.getUserType())
+                            .build();
+                    userRepository.save(user);
+                    user.setUserId(String.format("%06d", user.getId()));
+                    userRepository.update(user);
+                } else {
+                    throw new BusinessException("注册请求过于频繁");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BusinessException("注册被中断，请重试");
+            } finally {
+                if (isLocked && lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+            }
         } else {
             // 校验密码
             if (!bCryptEncoder.matches(request.getPassword(), user.getPassword())) {
                 throw new BusinessException("密码错误");
             }
         }
-        // 生成双token
+
+        // 生成双token并存储
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getUsername());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername());
-        String refreshTokenKey = "refresh_token:" + user.getId();
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername(), request.getClientId());
+        String refreshTokenKey = "refresh_token:" + user.getId() + "-" + request.getClientId();
+        String userFreshTokensKey = "refresh_token:" + user.getId();
         redissonService.setValue(refreshTokenKey, refreshToken, jwtUtil.getRefreshTokenExpiration());
+        redissonService.addToMap(userFreshTokensKey, request.getClientId(), refreshToken);
+        redissonService.setMapExpired(userFreshTokensKey, jwtUtil.getRefreshTokenExpiration() + Duration.ofMinutes(1).toMillis());
 
         return AuthResponseVO.builder()
                 .userId(user.getId().toString())
@@ -98,9 +129,20 @@ public class UserServiceImpl implements IUserService{
                 .build();
     }
 
+    /**
+     * 刷新令牌
+     * @param refreshToken
+     * @return
+     */
     @Override
     public AuthResponseVO refreshToken(String refreshToken) {
-        String refreshTokenKey = "refresh_token:" + jwtUtil.getUserIdFromToken(refreshToken);
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        String refreshTokenKey = "refresh_token:" + jwtUtil.getUserIdFromToken(refreshToken) + "-" + jwtUtil.getClientIdFromToken(refreshToken);
         String storedRefreshToken = redissonService.getValue(refreshTokenKey);
         if (ObjectUtil.isEmpty(storedRefreshToken)) {
             throw new BusinessException("刷新令牌无效");
@@ -111,8 +153,13 @@ public class UserServiceImpl implements IUserService{
         Long userId = jwtUtil.getUserIdFromToken(refreshToken);
         String username = jwtUtil.getUsernameFromToken(refreshToken);
         String accessToken = jwtUtil.generateAccessToken(userId, username);
-        String newRefreshToken = jwtUtil.generateRefreshToken(userId, username);
+        String newRefreshToken = jwtUtil.generateRefreshToken(userId, username, jwtUtil.getClientIdFromToken(refreshToken));
+
         redissonService.setValue(refreshTokenKey, newRefreshToken, jwtUtil.getRefreshTokenExpiration());
+        String userFreshTokensKey = "refresh_token:" + userId;
+        redissonService.addToMap(userFreshTokensKey, jwtUtil.getClientIdFromToken(refreshToken), newRefreshToken);
+        redissonService.setMapExpired(userFreshTokensKey, jwtUtil.getRefreshTokenExpiration() + Duration.ofMinutes(5).toMillis());
+
         return AuthResponseVO.builder()
                 .userId(userId.toString())
                 .username(username)
@@ -121,6 +168,44 @@ public class UserServiceImpl implements IUserService{
                 .build();
     }
 
+    /**
+     * 注销
+     * @param refreshToken
+     */
+    @Override
+    public void logout(String refreshToken) {
+        // 校验刷新令牌是否有效
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new BusinessException("刷新令牌无效");
+        }
+        String refreshTokenKey = "refresh_token:" + jwtUtil.getUserIdFromToken(refreshToken) + "-" + jwtUtil.getClientIdFromToken(refreshToken);
+        redissonService.remove(refreshTokenKey);
+        String userFreshTokensKey = "refresh_token:" + jwtUtil.getUserIdFromToken(refreshToken);
+        redissonService.removeFromMap(userFreshTokensKey, jwtUtil.getClientIdFromToken(refreshToken));
+    }
+
+    /**
+     * 注销所有设备
+     * @param userId
+     */
+    @Override
+    public void logoutAll(Long userId) {
+        User user = userRepository.findUserByUserId(userId);
+        if (ObjectUtil.isEmpty(user)) {
+            throw new BusinessException("用户不存在");
+        }
+        String userFreshTokensKey = "refresh_token:" + userId;
+        redissonService.getMap(userFreshTokensKey).forEach((clientId, token) -> redissonService.remove(userFreshTokensKey + "-" + clientId));
+        redissonService.remove(userFreshTokensKey);
+    }
+
+    /**
+     * 忘记密码
+     * @param request
+     */
     @Override
     public void forgetPassword(ForgetPasswdRequestVO request) {
         // 校验验证码是否正确
@@ -142,6 +227,10 @@ public class UserServiceImpl implements IUserService{
         redissonService.remove(verifyCodeKey);
     }
 
+    /**
+     * 发送验证码
+     * @param phone
+     */
     @Override
     public void sendVerifyCode(String phone) {
         // 校验手机号是否存在
@@ -162,4 +251,5 @@ public class UserServiceImpl implements IUserService{
 
         verifyCodeService.sendVerifyCode(phone, code);
     }
+
 }

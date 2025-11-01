@@ -1,8 +1,8 @@
 package com.achobeta.themis.domain.user.service;
 
-import com.achobeta.themis.common.vo.AuthResponseVO;
-import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
-import com.achobeta.themis.common.vo.LoginRequestVO;
+import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
+import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
+import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import com.achobeta.themis.domain.user.model.UserModel;
 
 /**
@@ -22,4 +22,8 @@ public interface IUserService {
     void forgetPassword(ForgetPasswdRequestVO request);
 
     void sendVerifyCode(String phone);
+
+     void logout(String refreshToken);
+
+    void logoutAll(Long userId);
 }
