@@ -53,6 +53,7 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
+        claims.put("clientId", clientId);
         claims.put("tokenType", "refresh");
         return createToken(claims, refreshTokenExpiration);
     }
