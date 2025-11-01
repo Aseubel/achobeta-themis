@@ -23,6 +23,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Aspect
 @Component
 public class LoginCheckAspect {
+
+
     @Resource
     private JwtUtil jwtUtil;
 
@@ -39,6 +41,8 @@ public class LoginCheckAspect {
         }
         boolean accessTokenValid = accessToken != null && jwtUtil.validateToken(accessToken) && jwtUtil.isAccessToken(accessToken);
         if (accessTokenValid) {
+            // 保存用户信息到Spring Security上下文
+            jwtUtil.saveUserInfoToSecurityContext(accessToken);
             return joinPoint.proceed();
         }
         else {

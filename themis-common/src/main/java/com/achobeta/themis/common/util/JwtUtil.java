@@ -5,9 +5,12 @@ import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -180,4 +183,14 @@ public class JwtUtil {
         return claims != null ? claims.getExpiration() : null;
     }
 
+    /**
+     * 从访问令牌中提取用户信息并保存到Spring Security上下文
+     * @param accessToken
+     */
+    public void saveUserInfoToSecurityContext(String accessToken) {
+        Long userId = getUserIdFromToken(accessToken);
+        if (userId != null) {
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList()));
+        }
+    }
 }

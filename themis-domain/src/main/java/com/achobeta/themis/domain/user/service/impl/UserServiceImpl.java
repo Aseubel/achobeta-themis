@@ -4,9 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.redis.service.RedissonService;
 import com.achobeta.themis.common.util.JwtUtil;
-import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
-import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
-import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
+import com.achobeta.themis.domain.user.model.vo.*;
 import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.repo.IUserRepository;
@@ -15,6 +13,8 @@ import com.achobeta.themis.domain.user.service.IVerifyCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -199,6 +199,55 @@ public class UserServiceImpl implements IUserService{
         String userFreshTokensKey = "refresh_token:" + userId;
         redissonService.getMap(userFreshTokensKey).forEach((clientId, token) -> redissonService.remove(userFreshTokensKey + "-" + clientId));
         redissonService.remove(userFreshTokensKey);
+    }
+
+    /**
+     * 修改密码
+     * @param request
+     */
+    @Override
+    public void changePassword(ChangePasswordRequestVO request) {
+        User user = userRepository.findUserByUserId(request.getUserId());
+        if (ObjectUtil.isEmpty(user)) {
+            throw new BusinessException("用户不存在");
+        }
+        // 校验是否是当前用户在操作
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException("未登录或token无效，禁止访问！");
+        }
+        Long currentUserId = (Long) authentication.getPrincipal();
+        if (!currentUserId.equals(user.getId())) {
+            throw new BusinessException("您没有权限修改其他用户的密码");
+        }
+        if (!bCryptEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BusinessException("旧密码错误");
+        }
+        user.setPassword(bCryptEncoder.encode(request.getNewPassword()));
+        userRepository.update(user);
+    }
+
+    /**
+     * 修改用户名
+     * @param request
+     */
+    @Override
+    public void changeUsername(ChangeUsernameRequestVO request) {
+        User user = userRepository.findUserByUserId(request.getUserId());
+        if (ObjectUtil.isEmpty(user)) {
+            throw new BusinessException("用户不存在");
+        }
+        // 校验是否是当前用户在操作
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException("未登录或token无效，禁止访问！");
+        }
+        Long currentUserId = (Long) authentication.getPrincipal();
+        if (!currentUserId.equals(user.getId())) {
+            throw new BusinessException("您没有权限修改其他用户的用户名");
+        }
+        user.setUsername(request.getNewUsername());
+        userRepository.update(user);
     }
 
     /**
