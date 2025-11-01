@@ -1,4 +1,4 @@
-package com.achobeta.themis.common.vo;
+package com.achobeta.themis.domain.user.model.vo;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -27,5 +27,8 @@ public class LoginRequestVO {
     @Min(value = 1, message = "用户类型只能为1或2")
     @Max(value = 2, message = "用户类型只能为1或2")
     private Integer userType;
+
+    @NotBlank(message = "客户端ID不能为空")
+    private String clientId;
 }
 

@@ -1,4 +1,4 @@
-package com.achobeta.themis.common.vo;
+package com.achobeta.themis.domain.user.model.vo;
 
 
 import jakarta.validation.constraints.NotBlank;
