@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        run: mvn -s settings.xml clean install -DskipTests
+        run: mvn verify -DskipTests
 
       # 用户登录
       - name: Login to ACR with the AccessKey pair
