@@ -8,6 +8,7 @@ package com.achobeta.themis.interceptor;
  * @version: 1.0.0
  */
 import com.achobeta.themis.common.annotation.LoginRequired;
+import com.achobeta.themis.common.exception.AuthenticationException;
 import com.achobeta.themis.common.exception.UnauthorizedException;
 import com.achobeta.themis.common.util.JwtUtil;
 import jakarta.annotation.Resource;
@@ -33,7 +34,7 @@ public class LoginCheckAspect {
         ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attrs != null ? attrs.getRequest() : null;
         if (request == null) {
-            throw new UnauthorizedException("无法获取请求对象，禁止访问！");
+            throw new AuthenticationException("无法获取请求对象，禁止访问！");
         }
         String accessToken = request.getHeader("Authorization");
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
@@ -46,7 +47,7 @@ public class LoginCheckAspect {
             return joinPoint.proceed();
         }
         else {
-            throw new UnauthorizedException("未登录或token无效，禁止访问！");
+            throw new AuthenticationException("未登录或token无效，禁止访问！");
         }
 
     }

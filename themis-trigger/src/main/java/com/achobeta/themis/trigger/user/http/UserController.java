@@ -85,7 +85,7 @@ public class UserController implements UserClient {
     }
 
     /**
-     * 批量注销用户所有登录会话
+     * 登出所有设备
      * @param userId
      * @return
      */
