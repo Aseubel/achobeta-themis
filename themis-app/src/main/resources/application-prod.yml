@@ -9,7 +9,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/achobeta_themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
+    url: jdbc:mysql://mysql:3306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
     username: root
     password: 123456
     hikari:
@@ -48,7 +48,7 @@ thread:
 
 #Redis 配置
 redis:
-  key-prefix: "weave-plus:"
+  key-prefix: "achobeta-themis:"
   time-to-live: 86400000 # 1天 (毫秒)
   sdk:
     config:
@@ -62,12 +62,20 @@ redis:
       retry-interval: 1000
       ping-interval: 60000
       keep-alive: true
+      password: 123456
 
 # JWT配置
 jwt:
   secret: 4ligUANwjrxTBFxYesepp/sd32D5S4Igz7FwNDmfItPgNu8aCxnrCVe5LZebisL6J3jtGLMZF+aGDnM6vjPLFA==
   access-token-expiration: 1800000 # 30分钟 (毫秒)
   refresh-token-expiration: 604800000 # 7天 (毫秒)
+
+# 阿里云短信配置
+aliyun:
+  access-key-id: ${aliyun-access-key-id}
+  access-key-secret: ${aliyun-access-key-secret}
+  template-code: ${aliyun-template-code}
+  sign-name: ${aliyun-sign-name}
 
 # 日志
 logging:

@@ -1,5 +1,6 @@
 package com.achobeta.themis.domain.user.service;
 
+import com.achobeta.themis.domain.user.model.vo.*;
 import com.achobeta.themis.domain.user.model.UserModel;
 
 /**
@@ -11,4 +12,20 @@ public interface IUserService {
     UserModel getUserByUserId(UserModel userModel);
 
     UserModel getUserInfo(Long userId);
+
+     AuthResponseVO login(LoginRequestVO request);
+
+    AuthResponseVO refreshToken(String refreshToken);
+
+    void forgetPassword(ForgetPasswdRequestVO request);
+
+    void sendVerifyCode(String phone);
+
+     void logout(String refreshToken);
+
+    void logoutAll(Long userId);
+
+    void changePassword(ChangePasswordRequestVO request);
+
+    void changeUsername(ChangeUsernameRequestVO request);
 }

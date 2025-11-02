@@ -21,17 +21,29 @@ import java.time.LocalDateTime;
 public class User {
 
     @FieldDesc(name = "用户ID")
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @FieldDesc(name = "用户名")
     private String username;
 
+    @FieldDesc(name = "密码")
+    private String password;
+
     @FieldDesc(name = "手机号")
     private String phone;
 
-    private LocalDateTime createdAt;
+    @FieldDesc(name = "六位数用户ID")
+    private String userId;
 
-    private LocalDateTime updatedAt;
+    @FieldDesc(name = "用户类型")
+    private Integer userType;
+
+    @FieldDesc(name = "创建时间")
+    private LocalDateTime createdTime;
+
+    @FieldDesc(name = "更新时间")
+    private LocalDateTime updatedTime;
 
 }
+

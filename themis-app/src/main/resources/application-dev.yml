@@ -11,7 +11,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
     username: root
-    password: root
+    password: 123456
     hikari:
       pool-name: Retail_HikariCP
       minimum-idle: 5 #最小空闲连接数量
@@ -54,6 +54,7 @@ redis:
     config:
       host: 127.0.0.1
       port: 6379
+      password: 123456
       pool-size: 10
       min-idle-size: 5
       idle-timeout: 30000
@@ -69,7 +70,12 @@ jwt:
   access-token-expiration: 5200000 # 120分钟 (毫秒)
   refresh-token-expiration: 604800000 # 7天 (毫秒)
 
-# 日志
+aliyun:
+  access-key-id: LTAI5tF3h1234567890
+  access-key-secret: 1234567890abcdef1234567890abcdef
+  template-code: SMS_202308100000000000000000000000000
+  sign-name: Achobeta
+
 logging:
   level:
     root: info
