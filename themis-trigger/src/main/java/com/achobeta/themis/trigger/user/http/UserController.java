@@ -10,6 +10,7 @@ import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.domain.user.service.IUserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -91,7 +92,7 @@ public class UserController implements UserClient {
      */
     @LoginRequired
     @PostMapping("/logout-all")
-    public ApiResponse<String> logoutAll(@NotBlank(message = "用户id不能为空") @RequestParam("userId") Long userId) {
+    public ApiResponse<String> logoutAll(@NotNull(message = "用户id不能为空") @RequestParam("userId") Long userId) {
         try {
             userService.logoutAll(userId);
             return ApiResponse.success("批量注销成功");
