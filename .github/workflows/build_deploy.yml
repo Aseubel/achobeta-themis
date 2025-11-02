@@ -15,9 +15,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./themis-app
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,7 +35,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        run: mvn verify -DskipTests
+        run: mvn -s settings.xml clean install -DskipTests
 
       # 用户登录
       - name: Login to ACR with the AccessKey pair
@@ -55,6 +52,7 @@ jobs:
       # 构建镜像并推送到阿里云 Container Registry
       - name: Build and push image to ACR
         run: |
+          cd ./themis-app
           echo "Building Docker image..."
           docker build --tag "$REGISTRY/$NAMESPACE/$IMAGE:$TAG" .
           echo "Pushing Docker image to ACR..."
