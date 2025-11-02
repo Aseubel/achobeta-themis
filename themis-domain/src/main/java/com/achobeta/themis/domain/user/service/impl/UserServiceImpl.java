@@ -57,6 +57,9 @@ public class UserServiceImpl implements IUserService{
             throw new BusinessException("用户ID不能为空");
         }
         User user = userRepository.findUserByUserId(userId);
+        if (ObjectUtil.isEmpty(user)) {
+            throw new BusinessException("用户不存在");
+        }
         UserModel result = UserModel.builder()
                 .user(user)
                 .build();
