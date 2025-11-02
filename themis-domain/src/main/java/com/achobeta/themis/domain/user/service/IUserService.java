@@ -1,8 +1,6 @@
 package com.achobeta.themis.domain.user.service;
 
-import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
-import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
-import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
+import com.achobeta.themis.domain.user.model.vo.*;
 import com.achobeta.themis.domain.user.model.UserModel;
 
 /**
@@ -26,4 +24,8 @@ public interface IUserService {
      void logout(String refreshToken);
 
     void logoutAll(Long userId);
+
+    void changePassword(ChangePasswordRequestVO request);
+
+    void changeUsername(ChangeUsernameRequestVO request);
 }

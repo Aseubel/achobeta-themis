@@ -5,16 +5,13 @@ import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.domain.user.model.vo.ForgetPasswdRequestVO;
+import com.achobeta.themis.domain.user.model.vo.*;
 import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.domain.user.service.IUserService;
-import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
-import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -70,7 +67,10 @@ public class UserController implements UserClient {
 
     /**
      * 登出用户
+     * @param refreshToken
+     * @return
      */
+    @LoginRequired
     @PostMapping("/logout")
     public ApiResponse<String> logout(@NotBlank(message = "刷新令牌不能为空") @RequestParam("refreshToken") String refreshToken) {
         try {
@@ -86,7 +86,10 @@ public class UserController implements UserClient {
 
     /**
      * 批量注销用户所有登录会话
+     * @param userId
+     * @return
      */
+    @LoginRequired
     @PostMapping("/logout-all")
     public ApiResponse<String> logoutAll(@NotBlank(message = "用户id不能为空") @RequestParam("userId") Long userId) {
         try {
@@ -150,6 +153,43 @@ public class UserController implements UserClient {
             throw e;
         } catch (Exception e) {
             log.error("密码修改失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 修改用户密码
+     * @param request
+     * @return
+     */
+     @LoginRequired
+     @PostMapping("/change-password")
+     public ApiResponse<String> changePassword(@Valid @RequestBody ChangePasswordRequestVO request) {
+        try {
+            userService.changePassword(request);
+            return ApiResponse.success("密码修改成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("密码修改失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 修改用户名
+     * @param request
+     */
+     @LoginRequired
+     @PostMapping("/change-username")
+     public ApiResponse<String> changeUsername(@Valid @RequestBody ChangeUsernameRequestVO request) {
+        try {
+            userService.changeUsername(request);
+            return ApiResponse.success("用户名修改成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("用户名修改失败", e);
             return ApiResponse.error(e.getMessage());
         }
     }
