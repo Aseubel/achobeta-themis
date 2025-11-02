@@ -9,7 +9,18 @@ import java.time.Duration;
  */
 
 public interface IVerifyCodeService {
+    /**
+     * 生成并存储验证码
+     * @param phone
+     * @param duration
+     * @return
+     */
     String generateAndStoreCode(String phone, Duration duration);
 
+    /**
+     * 发送验证码
+     * @param phone
+     * @param code
+     */
     void sendVerifyCode(String phone, String code);
 }
