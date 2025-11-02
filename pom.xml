@@ -33,6 +33,7 @@
         <caffein.version>3.1.8</caffein.version>
         <mybatis.version>3.0.5</mybatis.version>
         <mybatis-plus.version>3.5.14</mybatis-plus.version>
+        <lombock.version>1.18.42</lombock.version>
     </properties>
 
     <dependencyManagement>
@@ -43,6 +44,11 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombock.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
