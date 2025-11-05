@@ -2,9 +2,16 @@
     <localRepository>D:\develop\repository</localRepository>
     <mirrors>
         <mirror>
-            <mirrorOf>central</mirrorOf>
-            <url>https://maven.aliyun.com/repository/public</url>
             <id>aliyun-maven</id>
+            <name>Aliyun Public Repository</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <mirrorOf>!central,*</mirrorOf>
+        </mirror>
+        <mirror>
+            <id>central-maven</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo1.maven.org/maven2</url>
+            <mirrorOf>central</mirrorOf>
         </mirror>
     </mirrors>
     <profiles>
