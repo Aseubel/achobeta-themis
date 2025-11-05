@@ -79,7 +79,14 @@ public class FileController {
             return ApiResponse.error(e.getMessage());
         }
     }
-
+    /**
+     * 将上传的文件保存到本地指定目录
+     *
+     * @param file 上传的文件对象，包含文件数据和元信息
+     * @param conversationId 会话ID，用于创建文件存储的子目录
+     * @return 返回文件保存的绝对路径字符串
+     * @throws IOException 当文件操作失败时抛出异常
+     */
     private String saveToLocal(MultipartFile file, String conversationId) throws IOException {
         // 保存至本地固定目录
         Path base = Paths.get("D:\\A\\ruku\\upload");
