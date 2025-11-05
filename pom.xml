@@ -34,6 +34,7 @@
         <mybatis.version>3.0.5</mybatis.version>
         <mybatis-plus.version>3.5.14</mybatis-plus.version>
         <lombock.version>1.18.42</lombock.version>
+        <langchain4j.version>1.0.1</langchain4j.version>
     </properties>
 
     <dependencyManagement>
