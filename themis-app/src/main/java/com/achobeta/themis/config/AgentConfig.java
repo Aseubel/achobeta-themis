@@ -5,6 +5,7 @@ import com.achobeta.themis.infrastructure.user.repo.RedisChatMemoryStore;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.data.message.SystemMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -31,6 +32,9 @@ public class AgentConfig {
         String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
         log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
 
+        // 创建系统消息
+        SystemMessage systemMessage = SystemMessage.from(systemPrompt);
+
         OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
                 .baseUrl(agentConfigProperties.getBaseUrl())
                 .apiKey(agentConfigProperties.getApiKey())
@@ -39,14 +43,20 @@ public class AgentConfig {
 
         return AiServices.builder(IChatService.class)
                 .streamingChatModel(model)
+                .chatMemoryProvider(conversationId ->{
+                      MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
+                              .chatMemoryStore(redisChatMemoryStore)
+                              .id(conversationId)
+                              .maxMessages(100)
+                              .build();
 
-                .chatMemoryProvider(conversationId ->
-                        MessageWindowChatMemory.builder()
-                                .chatMemoryStore(redisChatMemoryStore)
-                                .id(conversationId)
-                                .maxMessages(100)
-                                .build()
-                )
+                      boolean hasSystemMessage = memory.messages().stream()
+                              .anyMatch(msg -> msg instanceof SystemMessage);
+                      if (!hasSystemMessage) {
+                          memory.add(systemMessage);
+                      }
+                      return memory;
+                })
                 .build();
     }
 }
