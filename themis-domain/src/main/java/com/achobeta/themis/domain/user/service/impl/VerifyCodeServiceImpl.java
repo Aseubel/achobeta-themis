@@ -36,6 +36,7 @@ public class VerifyCodeServiceImpl implements IVerifyCodeService {
 
     @Override
     public void sendVerifyCode(String phone, String code) {
+         log.info("发送验证码：{} 到手机号：{}", code, phone);
          aliSmsUtil.sendSms(phone, code);
     }
 }
