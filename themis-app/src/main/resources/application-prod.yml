@@ -82,3 +82,16 @@ logging:
   level:
     root: info
   config: classpath:logback-spring.xml
+
+# Langchain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: ${OPENAI_API_KEY}
+      model: qwen-plus
+
+# MeiliSearch 配置
+meilisearch:
+  host: http://localhost:7700
+  api-key: ${MEILISEARCH_API_KEY}

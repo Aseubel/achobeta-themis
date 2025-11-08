@@ -2,7 +2,7 @@ package com.achobeta.themis.trigger.file.http;
 
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.domain.user.service.IChatService;
+import com.achobeta.themis.common.agent.service.IAiChatService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +39,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FileController {
 
-    private final IChatService chatService;
+
+    @Autowired
+    @Qualifier("consulter")
+    private  IAiChatService chatService;
 
     private static final int MAX_TEXT_LENGTH = 20000;
     private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");

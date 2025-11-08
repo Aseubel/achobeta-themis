@@ -1,16 +1,14 @@
 package com.achobeta.themis.domain.user.service;
 
-import dev.langchain4j.service.MemoryId;
-import dev.langchain4j.service.UserMessage;
-import reactor.core.publisher.Flux;
+import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
+
+import java.util.List;
 
 public interface IChatService {
-
     /**
-     * 聊天
-     * @param memoryId 内存ID
-     * @param message 消息
-     * @return 响应流
+     * 搜索问题标题
+     * @return
      */
-    Flux<String> chat(@MemoryId String memoryId, @UserMessage String message);
+    List<List<QuestionTitleDocument>> searchQuestionTitles();
+
 }
