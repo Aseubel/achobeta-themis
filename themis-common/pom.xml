@@ -127,6 +127,18 @@
             <artifactId>langchain4j-community-redis</artifactId>
             <version>1.0.1-beta6</version>
         </dependency>
+        <!-- MeiliSearch-Java -->
+        <dependency>
+            <groupId>com.meilisearch.sdk</groupId>
+            <artifactId>meilisearch-java</artifactId>
+            <version>0.16.1</version>
+        </dependency>
+        <!-- Hugging Face -->
+        <dependency>
+            <groupId>ai.djl.huggingface</groupId>
+            <artifactId>tokenizers</artifactId>
+            <version>0.25.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
