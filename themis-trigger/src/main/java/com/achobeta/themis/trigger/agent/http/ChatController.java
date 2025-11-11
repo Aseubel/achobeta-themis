@@ -1,21 +1,38 @@
 package com.achobeta.themis.trigger.agent.http;
 
 import com.achobeta.themis.common.ApiResponse;
+import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
-import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.domain.user.service.IChatService;
+import com.achobeta.themis.domain.user.service.IConversationHistoryService;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 @Slf4j
 @RestController
@@ -32,6 +49,13 @@ public class ChatController {
     private final IAdjudicatorService adjudicatorService;
 
     private final IChatService chatService;
+
+    @Autowired
+    @Qualifier("redisChatMemoryStore")
+    private ChatMemoryStore chatMemoryStore;
+
+    @Autowired
+    private IConversationHistoryService conversationHistoryService;
     
     /**
      * Ai问答聊天
@@ -46,9 +70,8 @@ public class ChatController {
                 adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
             });
             threadPoolTaskExecutor.execute(() -> {
-                log.info("异步保存对话记录");
-                // TODO 异步保存对话记录
-                //chatService.saveChatRecord(request.getId(), request.getConversationId(), request.getMessage());
+                log.info("异步触碰并续期对话历史");
+                conversationHistoryService.touch(request.getId(), request.getConversationId());
             });
             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
@@ -62,14 +85,73 @@ public class ChatController {
     }
 
     /**
-     * TODO
-     * 查询对话记录
+     * 新建对话：归档当前，返回新 conversationId
      */
+    @PostMapping("/new")
+    public ApiResponse<String> newConversation(
+            @RequestParam("userId") Long userId,
+            @RequestParam(value = "currentConversationId", required = false) String currentConversationId
+    ) {
+        try {
+            String newId = conversationHistoryService.startNewConversation(userId, currentConversationId);
+            return ApiResponse.success(newId);
+        } catch (Exception e) {
+            log.error("新建对话失败", e);
+            return ApiResponse.error("新建对话失败: " + e.getMessage());
+        }
+    }
 
     /**
-     * TODO
+     * 查询对话记录
+     */
+    @GetMapping("/history")
+    public ApiResponse<List<ChatHistoryVO>> history(
+            @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
+    ) {
+        try {
+            List<ChatMessage> messages = chatMemoryStore.getMessages(conversationId);
+            List<ChatHistoryVO> history = messages.stream()
+                    .map(this::toHistory)
+                    .collect(Collectors.toList());
+            return ApiResponse.success(history);
+        } catch (Exception e) {
+            log.error("查询对话历史失败", e);
+            return ApiResponse.error("查询对话历史失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询当前用户的全部历史对话元信息
+     */
+    @GetMapping("/histories")
+    public ApiResponse<List<IConversationHistoryService.ConversationMeta>> histories(
+            @RequestParam("userId") Long userId
+    ) {
+        try {
+            List<IConversationHistoryService.ConversationMeta> list = conversationHistoryService.listHistories(userId);
+            return ApiResponse.success(list);
+        } catch (Exception e) {
+            log.error("查询用户历史对话失败", e);
+            return ApiResponse.error("查询用户历史对话失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 删除对话记录
      */
+    @DeleteMapping("/history")
+    public ApiResponse<Void> resetHistory(
+            @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
+    ) {
+        try {
+            chatMemoryStore.deleteMessages(conversationId);
+            log.info("已重置对话历史，conversationId: {}", conversationId);
+            return ApiResponse.success(null);
+        } catch (Exception e) {
+            log.error("重置对话历史失败", e);
+            return ApiResponse.error("重置对话历史失败: " + e.getMessage());
+        }
+    }
 
     /**
      * 查询常问问题（二级标题）
@@ -88,6 +170,34 @@ public class ChatController {
         }
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ChatHistoryVO {
+        private String role;
+        private String content;
+        private LocalDateTime timestamp;
+    }
+
+    private ChatHistoryVO toHistory(ChatMessage message) {
+        return new ChatHistoryVO(
+                message.type().name(),
+                resolveContent(message),
+                LocalDateTime.now()
+        );
+    }
+
+    private String resolveContent(ChatMessage message) {
+        try {
+            Method textMethod = message.getClass().getMethod("text");
+            Object value = textMethod.invoke(message);
+            if (value instanceof String text) {
+                return text;
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        }
+        return message.toString();
+    }
 
 //    /**
 //     * Ai改合同

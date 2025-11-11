@@ -140,11 +140,11 @@ public class MeiliSearchComponent implements CommandLineRunner {
         Index index = meiliSearchClient.index(QUESTION_TITLE_DOCUMENTS);
 
         SearchRequest req = new SearchRequest(query);
-        Hybrid hybrid = Hybrid.builder()
+        /*Hybrid hybrid = Hybrid.builder()
                 .semanticRatio(0.9)
                 .embedder("default")
                 .build();
-        req.setHybrid(hybrid);
+        req.setHybrid(hybrid);*/
 
         SearchResult raw = (SearchResult) index.search(req);
         if (raw == null || raw.getHits() == null || raw.getHits().isEmpty()) {
