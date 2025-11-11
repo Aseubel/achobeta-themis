@@ -7,9 +7,6 @@ import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
@@ -33,7 +30,8 @@ public class RedisChatMemoryStore implements ChatMemoryStore {
     @Override
     public void updateMessages(Object conversationId, List<ChatMessage> list) {
         String json = ChatMessageSerializer.messagesToJson(list);
-        redissonService.setValue(conversationId.toString(), json, Duration.ofMinutes(10).toMillis());
+        // 将对话记忆保存 1 天，并在每次写入时续期
+        redissonService.setValue(conversationId.toString(), json, Duration.ofDays(1).toMillis());
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
 import com.achobeta.themis.domain.user.service.IChatService;
+import com.achobeta.themis.domain.user.service.IConversationHistoryService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import jakarta.validation.Valid;
@@ -52,6 +53,9 @@ public class ChatController {
     @Autowired
     @Qualifier("redisChatMemoryStore")
     private ChatMemoryStore chatMemoryStore;
+
+    @Autowired
+    private IConversationHistoryService conversationHistoryService;
     
     /**
      * Ai问答聊天
@@ -66,9 +70,8 @@ public class ChatController {
                 adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
             });
             threadPoolTaskExecutor.execute(() -> {
-                log.info("异步保存对话记录");
-                // TODO 异步保存对话记录
-                //chatService.saveChatRecord(request.getId(), request.getConversationId(), request.getMessage());
+                log.info("异步触碰并续期对话历史");
+                conversationHistoryService.touch(request.getId(), request.getConversationId());
             });
             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
@@ -78,6 +81,23 @@ public class ChatController {
         } catch (Exception e) {
             log.error("Ai问答聊天失败", e);
             return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 新建对话：归档当前，返回新 conversationId
+     */
+    @PostMapping("/new")
+    public ApiResponse<String> newConversation(
+            @RequestParam("userId") Long userId,
+            @RequestParam(value = "currentConversationId", required = false) String currentConversationId
+    ) {
+        try {
+            String newId = conversationHistoryService.startNewConversation(userId, currentConversationId);
+            return ApiResponse.success(newId);
+        } catch (Exception e) {
+            log.error("新建对话失败", e);
+            return ApiResponse.error("新建对话失败: " + e.getMessage());
         }
     }
 
@@ -97,6 +117,22 @@ public class ChatController {
         } catch (Exception e) {
             log.error("查询对话历史失败", e);
             return ApiResponse.error("查询对话历史失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询当前用户的全部历史对话元信息
+     */
+    @GetMapping("/histories")
+    public ApiResponse<List<IConversationHistoryService.ConversationMeta>> histories(
+            @RequestParam("userId") Long userId
+    ) {
+        try {
+            List<IConversationHistoryService.ConversationMeta> list = conversationHistoryService.listHistories(userId);
+            return ApiResponse.success(list);
+        } catch (Exception e) {
+            log.error("查询用户历史对话失败", e);
+            return ApiResponse.error("查询用户历史对话失败: " + e.getMessage());
         }
     }
 
