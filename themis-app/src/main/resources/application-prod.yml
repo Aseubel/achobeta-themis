@@ -62,7 +62,7 @@ redis:
       retry-interval: 1000
       ping-interval: 60000
       keep-alive: true
-      password: ${REDIS_PASSWORD}
+      password: 123456
 
 # JWT配置
 jwt:
