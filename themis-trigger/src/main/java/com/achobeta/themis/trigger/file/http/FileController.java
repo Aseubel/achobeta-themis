@@ -48,7 +48,6 @@ import java.lang.reflect.Method;
 public class FileController {
 
     @Autowired
-    @Qualifier("adjudicator")
     private IAiChatService chatService;
 
     @Autowired

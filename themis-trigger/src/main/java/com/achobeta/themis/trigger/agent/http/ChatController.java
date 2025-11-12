@@ -47,7 +47,6 @@ public class ChatController {
     private final IChatService chatService;
 
     @Autowired
-    @Qualifier("redisChatMemoryStore")
     private ChatMemoryStore chatMemoryStore;
 
     @Autowired

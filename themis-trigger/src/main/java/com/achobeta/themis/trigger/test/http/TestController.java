@@ -39,6 +39,10 @@ public class TestController {
         return response;
     }
 
+    /**
+     * 插入二级标题测试数据进meilisearch
+     * @return
+     */
     @GetMapping("/login-and-do-the-adding")
     public ApiResponse<String> login() {
         try {
