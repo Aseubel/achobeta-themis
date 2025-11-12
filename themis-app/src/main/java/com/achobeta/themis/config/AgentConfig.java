@@ -73,7 +73,6 @@ public class AgentConfig {
         ClassPathResource resource = new ClassPathResource("prompt-adjudicator.txt");
         String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
         log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
-        log.error(systemPrompt);
         SystemMessage systemMessage = SystemMessage.from(systemPrompt);
         OpenAiChatModel model = OpenAiChatModel.builder()
                 .baseUrl(agentConfigProperties.getBaseUrl())
