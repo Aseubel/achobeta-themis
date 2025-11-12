@@ -3,10 +3,9 @@ package com.achobeta.themis.trigger.agent.http;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.agent.service.IAiChatService;
-import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
+import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
-import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
 import com.achobeta.themis.domain.user.service.IChatService;
 import com.achobeta.themis.domain.user.service.IConversationHistoryService;
@@ -53,7 +52,7 @@ public class ChatController {
 
     @Autowired
     private IConversationHistoryService conversationHistoryService;
-    
+
     /**
      * Ai问答聊天
      * @param request
@@ -71,7 +70,7 @@ public class ChatController {
                 log.info("异步触碰并续期对话历史");
                 conversationHistoryService.touch(request.getId(), request.getConversationId());
             });
-             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
+            List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
             return ApiResponse.success(responseStr);
         } catch (BusinessException e) {
