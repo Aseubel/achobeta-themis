@@ -1,6 +1,6 @@
 package com.achobeta.themis.domain.user.service;
 
-import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
+import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 
 import java.util.List;
 
@@ -9,6 +9,6 @@ public interface IChatService {
      * 搜索问题标题
      * @return
      */
-    List<List<QuestionTitleDocument>> searchQuestionTitles();
+    List<List<QuestionTitleResponseVO>> searchQuestionTitles(Integer userType);
 
 }

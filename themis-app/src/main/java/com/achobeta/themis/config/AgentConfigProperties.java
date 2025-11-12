@@ -8,5 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AgentConfigProperties {
     private String baseUrl;
     private String apiKey;
+    private String apiKeyAdjudicator;
     private String model;
 }

@@ -1,13 +1,16 @@
 package com.achobeta.themis.trigger.agent.http;
 
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
+import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
+import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.domain.user.service.IChatService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,7 @@ public class ChatController {
      * @param request
      * @return
      */
+    @LoginRequired
     @PostMapping("/consult")
     public ApiResponse<String> chat(@Valid @RequestBody ChatRequestVO request) {
         try {
@@ -50,7 +54,7 @@ public class ChatController {
                 // TODO 异步保存对话记录
                 //chatService.saveChatRecord(request.getId(), request.getConversationId(), request.getMessage());
             });
-            List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
+             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
             return ApiResponse.success(responseStr);
         } catch (BusinessException e) {
@@ -75,10 +79,11 @@ public class ChatController {
      * 查询常问问题（二级标题）
      * @return
      */
-    @GetMapping("/secondary-question-titles")
-    public ApiResponse<List<List<QuestionTitleDocument>>> searchQuestionTitles() {
+    @LoginRequired
+    @GetMapping("/secondary-question-titles/{userType}")
+    public ApiResponse<List<List<QuestionTitleResponseVO>>> searchQuestionTitles(@PathVariable("userType") @NotNull(message = "用户类型不能为空") Integer userType) {
         try {
-            List<List<QuestionTitleDocument>> questionTitleDocuments = chatService.searchQuestionTitles();
+            List<List<QuestionTitleResponseVO>> questionTitleDocuments = chatService.searchQuestionTitles(userType);
             return ApiResponse.success(questionTitleDocuments);
         } catch (BusinessException e) {
             throw e;

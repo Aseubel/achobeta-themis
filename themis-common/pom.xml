@@ -139,6 +139,12 @@
             <artifactId>tokenizers</artifactId>
             <version>0.25.0</version>
         </dependency>
+        <!-- IK Analyzer -->
+        <dependency>
+            <groupId>cn.bestwu</groupId>
+            <artifactId>ik-analyzers</artifactId>
+            <version>5.1.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
