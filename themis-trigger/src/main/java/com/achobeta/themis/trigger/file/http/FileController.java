@@ -3,8 +3,13 @@ package com.achobeta.themis.trigger.file.http;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.common.exception.BusinessException;
+import com.achobeta.themis.common.util.SecurityUtils;
+import com.achobeta.themis.domain.user.model.vo.FileReviewRecordVO;
+import com.achobeta.themis.domain.user.model.vo.SaveFileReviewRecordRequestVO;
+import com.achobeta.themis.domain.user.service.IFileReviewHistoryService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,12 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 import reactor.core.publisher.Flux;
@@ -36,6 +36,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -54,6 +55,8 @@ public class FileController {
     @Autowired
     @Qualifier("redisChatMemoryStore")
     private ChatMemoryStore chatMemoryStore;
+    
+    private final IFileReviewHistoryService fileReviewHistoryService;
 
     private static final int MAX_TEXT_LENGTH = 20000;
     private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
@@ -86,7 +89,9 @@ public class FileController {
             List<String> chunks = stream.collectList().block();
             String review = String.join("", chunks);
 
-            return ApiResponse.success(new ReviewResult(conversationId, savedPath, review));
+            return ApiResponse.success(
+                    new ReviewResult(conversationId, savedPath, file.getOriginalFilename(), review)
+            );
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -96,9 +101,141 @@ public class FileController {
     }
 
     /**
+     * 保存审查记录
+     * @return 新生成的记录ID
+     */
+    @PostMapping("/review/record")
+    public ApiResponse<String> saveReviewRecord(
+            @Valid @RequestBody SaveFileReviewRecordRequestVO request,
+           @RequestParam("userId") Long userId
+    ) {
+        try {
+           // Long userId = SecurityUtils.getCurrentUserId();
+            String recordId = request.getRecordId();
+            if (recordId == null || recordId.isBlank()) {
+                recordId = UUID.randomUUID().toString();
+            }
+            long currentTime = System.currentTimeMillis();
+
+            IFileReviewHistoryService.ReviewRecord reviewRecord =
+                    new IFileReviewHistoryService.ReviewRecord(
+                            recordId,
+                            request.getFileName(),
+                            request.getFilePath(),
+                            request.getReviewContent(),
+                            currentTime,
+                            currentTime
+                    );
+
+            fileReviewHistoryService.saveReviewRecord(userId, reviewRecord);
+            log.info("审查记录已保存，recordId: {}, userId: {}", recordId, userId);
+            return ApiResponse.success("审查记录已保存", recordId);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("保存审查记录失败", e);
+            return ApiResponse.error("保存审查记录失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户的文件审查记录列表
+     * @return 审查记录列表
+     */
+    @GetMapping("/review/records")
+    public ApiResponse<FileReviewRecordVO.ReviewRecordListVO> getReviewRecords(
+            @RequestParam("userId") Long userId
+    ) {
+        try {
+           // Long userId = SecurityUtils.getCurrentUserId();
+            List<IFileReviewHistoryService.ReviewRecord> records = 
+                    fileReviewHistoryService.getUserReviewRecords(userId);
+            
+            List<FileReviewRecordVO> recordVOs = records.stream()
+                    .map(record -> new FileReviewRecordVO(
+                            record.getRecordId(),
+                            record.getFileName(),
+                            record.getFilePath(),
+                            record.getReviewContent(),
+                            record.getCreateTime(),
+                            record.getUpdateTime()
+                    ))
+                    .collect(Collectors.toList());
+            
+            FileReviewRecordVO.ReviewRecordListVO result = 
+                    new FileReviewRecordVO.ReviewRecordListVO(recordVOs);
+            return ApiResponse.success(result);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取审查记录列表失败", e);
+            return ApiResponse.error("获取审查记录列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取指定的审查记录详情
+     * @param recordId 记录ID
+     * @return 审查记录详情
+     */
+    @GetMapping("/review/record")
+    public ApiResponse<FileReviewRecordVO> getReviewRecord(
+            @RequestParam("recordId") @NotBlank(message = "记录ID不能为空") String recordId,
+              @RequestParam("userId") Long userId
+    ) {
+        try {
+            //Long userId = SecurityUtils.getCurrentUserId();
+            IFileReviewHistoryService.ReviewRecord record = 
+                    fileReviewHistoryService.getReviewRecord(userId, recordId);
+            
+            if (record == null) {
+                return ApiResponse.error("审查记录不存在或无权访问");
+            }
+            
+            FileReviewRecordVO recordVO = new FileReviewRecordVO(
+                    record.getRecordId(),
+                    record.getFileName(),
+                    record.getFilePath(),
+                    record.getReviewContent(),
+                    record.getCreateTime(),
+                    record.getUpdateTime()
+            );
+            
+            return ApiResponse.success(recordVO);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取审查记录详情失败", e);
+            return ApiResponse.error("获取审查记录详情失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除审查记录
+     * @param recordId 记录ID
+     * @return
+     */
+    @DeleteMapping("/review/record")
+    public ApiResponse<Void> deleteReviewRecord(
+            @RequestParam("recordId") @NotBlank(message = "记录ID不能为空") String recordId
+    ) {
+        try {
+            Long userId = SecurityUtils.getCurrentUserId();
+            fileReviewHistoryService.deleteReviewRecord(userId, recordId);
+            log.info("已删除审查记录，recordId: {}", recordId);
+            return ApiResponse.success(null);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("删除审查记录失败", e);
+            return ApiResponse.error("删除审查记录失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 查询对话历史记录
      */
-    @GetMapping("/history")
+   /* @GetMapping("/history")
     public ApiResponse<List<ChatHistoryVO>> history(
             @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
     ) {
@@ -113,11 +250,11 @@ public class FileController {
             return ApiResponse.error("查询对话历史失败: " + e.getMessage());
         }
     }
-
+*/
     /**
      * 重置对话历史状态
      */
-    @DeleteMapping("/history")
+   /* @DeleteMapping("/history")
     public ApiResponse<Void> resetHistory(
             @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
     ) {
@@ -130,7 +267,7 @@ public class FileController {
             return ApiResponse.error("重置对话历史失败: " + e.getMessage());
         }
     }
-
+*/
     private String saveToLocal(MultipartFile file, String conversationId) throws IOException {
         Path base = Paths.get("D:\\A\\ruku\\upload");
         Path dir = base.resolve(sanitize(conversationId));
@@ -204,6 +341,7 @@ public class FileController {
     @AllArgsConstructor
     public static class ReviewResult {
         private String id;
+        private String filename;
         private String localPath;
         private String review;
     }
