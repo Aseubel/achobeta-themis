@@ -1,11 +1,14 @@
 package com.achobeta.themis.trigger.agent.http;
 
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.agent.service.IAiChatService;
-import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
+import com.achobeta.themis.common.annotation.LoginRequired;
+import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
 import com.achobeta.themis.common.exception.BusinessException;
+import com.achobeta.themis.common.util.SecurityUtils;
+import com.achobeta.themis.domain.user.model.entity.ConversationMeta;
 import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
+import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
 import com.achobeta.themis.domain.user.service.IChatService;
 import com.achobeta.themis.domain.user.service.IConversationHistoryService;
@@ -14,10 +17,7 @@ import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@LoginRequired
 public class ChatController {
     @Autowired
     @Qualifier("consulter")
@@ -54,7 +55,12 @@ public class ChatController {
 
     @Autowired
     private IConversationHistoryService conversationHistoryService;
+    /*
+    * 拿到标题*/
+    /*@GetMapping("/get-question-titles")
+    public static  getQuestionTitles(@RequestParam (value = "title")) {
 
+    }*/
     /**
      * Ai问答聊天
      * @param request
@@ -64,6 +70,8 @@ public class ChatController {
     @PostMapping("/consult")
     public ApiResponse<String> chat(@Valid @RequestBody ChatRequestVO request) {
         try {
+            String userId = SecurityUtils.getCurrentUserId();
+            request.setId(userId);
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步处理问题分类");
                 adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
@@ -88,11 +96,14 @@ public class ChatController {
      */
     @PostMapping("/new")
     public ApiResponse<String> newConversation(
-            @RequestParam("userId") Long userId,
+            // @RequestParam("userId") Long userId,
+            @RequestParam(value = "title",defaultValue = "未命名") String title,
             @RequestParam(value = "currentConversationId", required = false) String currentConversationId
     ) {
+
         try {
-            String newId = conversationHistoryService.startNewConversation(userId, currentConversationId);
+            String userId = SecurityUtils.getCurrentUserId();
+            String newId = conversationHistoryService.startNewConversation(userId, currentConversationId,title);
             return ApiResponse.success(newId);
         } catch (Exception e) {
             log.error("新建对话失败", e);
@@ -122,17 +133,15 @@ public class ChatController {
     /**
      * 查询当前用户的全部历史对话元信息
      */
-    @LoginRequired
+
     @GetMapping("/histories")
-    public ApiResponse<List<IConversationHistoryService.ConversationMeta>> histories(
-            @RequestParam("userId") Long userId
+    public ApiResponse<List<ConversationMeta>> histories(
+           // @RequestParam("userId") Long userId
     ) {
+
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !authentication.isAuthenticated()) {
-                throw new BusinessException("未登录或token无效，禁止访问！");
-            }
-            List<IConversationHistoryService.ConversationMeta> list = conversationHistoryService.listHistories(userId);
+            String userId = SecurityUtils.getCurrentUserId();
+            List<ConversationMeta> list = conversationHistoryService.listHistories(userId);
             return ApiResponse.success(list);
         } catch (Exception e) {
             log.error("查询用户历史对话失败", e);
