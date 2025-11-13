@@ -24,7 +24,7 @@ public class FileReviewHistoryServiceImpl implements IFileReviewHistoryService {
     private static final String REVIEW_DETAIL_KEY_PREFIX = "file_review:detail:";
     
     @Override
-    public void saveReviewRecord(Long userId, ReviewRecord reviewRecord) {
+    public void saveReviewRecord(String userId, ReviewRecord reviewRecord) {
         try {
             String recordId = reviewRecord.getRecordId();
             
@@ -54,7 +54,7 @@ public class FileReviewHistoryServiceImpl implements IFileReviewHistoryService {
     }
     
     @Override
-    public List<ReviewRecord> getUserReviewRecords(Long userId) {
+    public List<ReviewRecord> getUserReviewRecords(String userId) {
         String listKey = REVIEW_LIST_KEY_PREFIX + userId;
         Set<String> recordIds = redissonService.getSetMembers(listKey);
         
@@ -70,7 +70,7 @@ public class FileReviewHistoryServiceImpl implements IFileReviewHistoryService {
     }
     
     @Override
-    public ReviewRecord getReviewRecord(Long userId, String recordId) {
+    public ReviewRecord getReviewRecord(String userId, String recordId) {
         // 验证记录是否属于该用户
         String listKey = REVIEW_LIST_KEY_PREFIX + userId;
         if (!redissonService.isSetMember(listKey, recordId)) {
@@ -102,7 +102,7 @@ public class FileReviewHistoryServiceImpl implements IFileReviewHistoryService {
     }
     
     @Override
-    public void deleteReviewRecord(Long userId, String recordId) {
+    public void deleteReviewRecord(String userId, String recordId) {
         // 从用户的记录列表中移除
         String listKey = REVIEW_LIST_KEY_PREFIX + userId;
         redissonService.removeFromSet(listKey, recordId);

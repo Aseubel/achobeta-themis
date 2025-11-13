@@ -106,11 +106,11 @@ public class FileController {
      */
     @PostMapping("/review/record")
     public ApiResponse<String> saveReviewRecord(
-            @Valid @RequestBody SaveFileReviewRecordRequestVO request,
-           @RequestParam("userId") Long userId
+            @Valid @RequestBody SaveFileReviewRecordRequestVO request
+         //  @RequestParam("userId") Long userId
     ) {
         try {
-           // Long userId = SecurityUtils.getCurrentUserId();
+            String userId = SecurityUtils.getCurrentUserId();
             String recordId = request.getRecordId();
             if (recordId == null || recordId.isBlank()) {
                 recordId = UUID.randomUUID().toString();
@@ -144,10 +144,10 @@ public class FileController {
      */
     @GetMapping("/review/records")
     public ApiResponse<FileReviewRecordVO.ReviewRecordListVO> getReviewRecords(
-            @RequestParam("userId") Long userId
+          //  @RequestParam("userId") Long userId
     ) {
         try {
-           // Long userId = SecurityUtils.getCurrentUserId();
+           String userId = SecurityUtils.getCurrentUserId();
             List<IFileReviewHistoryService.ReviewRecord> records = 
                     fileReviewHistoryService.getUserReviewRecords(userId);
             
@@ -180,11 +180,11 @@ public class FileController {
      */
     @GetMapping("/review/record")
     public ApiResponse<FileReviewRecordVO> getReviewRecord(
-            @RequestParam("recordId") @NotBlank(message = "记录ID不能为空") String recordId,
-              @RequestParam("userId") Long userId
+            @RequestParam("recordId") @NotBlank(message = "记录ID不能为空") String recordId
+             // @RequestParam("userId") Long userId
     ) {
         try {
-            //Long userId = SecurityUtils.getCurrentUserId();
+            String userId = SecurityUtils.getCurrentUserId();
             IFileReviewHistoryService.ReviewRecord record = 
                     fileReviewHistoryService.getReviewRecord(userId, recordId);
             
@@ -220,7 +220,7 @@ public class FileController {
             @RequestParam("recordId") @NotBlank(message = "记录ID不能为空") String recordId
     ) {
         try {
-            Long userId = SecurityUtils.getCurrentUserId();
+            String userId = SecurityUtils.getCurrentUserId();
             fileReviewHistoryService.deleteReviewRecord(userId, recordId);
             log.info("已删除审查记录，recordId: {}", recordId);
             return ApiResponse.success(null);

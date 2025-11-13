@@ -8,14 +8,14 @@ public interface IFileReviewHistoryService {
      * @param userId 用户ID
      * @param reviewRecord 审查记录
      */
-    void saveReviewRecord(Long userId, ReviewRecord reviewRecord);
+    void saveReviewRecord(String userId, ReviewRecord reviewRecord);
     
     /**
      * 获取用户的所有文件审查记录
      * @param userId 用户ID
      * @return 审查记录列表
      */
-    List<ReviewRecord> getUserReviewRecords(Long userId);
+    List<ReviewRecord> getUserReviewRecords(String userId);
     
     /**
      * 获取指定的审查记录详情
@@ -23,14 +23,14 @@ public interface IFileReviewHistoryService {
      * @param recordId 记录ID
      * @return 审查记录
      */
-    ReviewRecord getReviewRecord(Long userId, String recordId);
+    ReviewRecord getReviewRecord(String userId, String recordId);
     
     /**
      * 删除审查记录
      * @param userId 用户ID
      * @param recordId 记录ID
      */
-    void deleteReviewRecord(Long userId, String recordId);
+    void deleteReviewRecord(String userId, String recordId);
     
     /**
      * 文件审查记录

@@ -1,6 +1,7 @@
 package com.achobeta.themis.infrastructure.user.repo;
 
 import com.achobeta.themis.common.redis.service.IRedisService;
+import com.achobeta.themis.domain.user.model.entity.ConversationMeta;
 import com.achobeta.themis.domain.user.service.IConversationHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class ConversationHistoryServiceImpl implements IConversationHistoryServi
 
     private final IRedisService redis;
 
-    private String historyMapKey(Long userId) {
+    private String historyMapKey(String userId) {
         // 使用 Redis 哈希表存储历史对话列表
         // 键：chat:user:{userId}:convs
         // 字段（field）：conversationId
@@ -34,10 +35,10 @@ public class ConversationHistoryServiceImpl implements IConversationHistoryServi
     }
 
     @Override
-    public String startNewConversation(Long userId, String currentConversationId) {
+    public String startNewConversation(String userId, String currentConversationId,String title) {
         // 若存在当前对话，则先归档到历史
         if (currentConversationId != null && !currentConversationId.isBlank()) {
-            archiveIfAbsent(userId, currentConversationId, null);
+            archiveIfAbsent(userId, currentConversationId, title);
         }
         // 生成新的会话 ID，并写入基础元信息
         String newId = java.util.UUID.randomUUID().toString();
@@ -52,7 +53,7 @@ public class ConversationHistoryServiceImpl implements IConversationHistoryServi
     }
 
     @Override
-    public void archiveIfAbsent(Long userId, String conversationId, String title) {
+    public void archiveIfAbsent(String userId, String conversationId, String title) {
         // 确保元信息存在
         String mk = metaKey(conversationId);
         if (redis.getFromMap(mk, "userId") == null) {
@@ -72,7 +73,7 @@ public class ConversationHistoryServiceImpl implements IConversationHistoryServi
     }
 
     @Override
-    public void touch(Long userId, String conversationId) {
+    public void touch(String userId, String conversationId) {
         // 触碰：更新元信息时间并续期
         String mk = metaKey(conversationId);
         if (redis.getFromMap(mk, "userId") == null) {
@@ -89,7 +90,7 @@ public class ConversationHistoryServiceImpl implements IConversationHistoryServi
     }
 
     @Override
-    public List<ConversationMeta> listHistories(Long userId) {
+    public List<ConversationMeta> listHistories(String userId) {
         // 读取用户历史对话列表（哈希的全部键值对）
         String hk = historyMapKey(userId);
         Map<String, String> map = redis.getMapToJavaMap(hk);
@@ -114,7 +115,7 @@ public class ConversationHistoryServiceImpl implements IConversationHistoryServi
         if (map == null || map.isEmpty()) return null;
         ConversationMeta m = new ConversationMeta();
         m.conversationId = conversationId;
-        m.userId = map.get("userId") != null ? Long.valueOf(map.get("userId")) : null;
+        m.userId = map.get("userId") != null ? String.valueOf(map.get("userId")) : null;
         m.title = map.get("title");
         m.createdAt = map.get("createdAt") != null ? LocalDateTime.parse(map.get("createdAt")) : null;
         m.updatedAt = map.get("updatedAt") != null ? LocalDateTime.parse(map.get("updatedAt")) : null;
