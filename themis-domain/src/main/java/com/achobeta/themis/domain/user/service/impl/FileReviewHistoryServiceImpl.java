@@ -33,7 +33,7 @@ public class FileReviewHistoryServiceImpl implements IFileReviewHistoryService {
             Map<String, String> detailMap = new HashMap<>();
             detailMap.put("recordId", recordId);
             detailMap.put("fileName", reviewRecord.getFileName() != null ? reviewRecord.getFileName() : "");
-            detailMap.put("filePath", reviewRecord.getFilePath() != null ? reviewRecord.getFilePath() : "");
+
             detailMap.put("reviewContent", reviewRecord.getReviewContent() != null ? reviewRecord.getReviewContent() : "");
             detailMap.put("createTime", String.valueOf(reviewRecord.getCreateTime()));
             detailMap.put("updateTime", String.valueOf(reviewRecord.getUpdateTime()));
@@ -88,7 +88,7 @@ public class FileReviewHistoryServiceImpl implements IFileReviewHistoryService {
         ReviewRecord record = new ReviewRecord();
         record.setRecordId(detailMap.get("recordId"));
         record.setFileName(detailMap.get("fileName"));
-        record.setFilePath(detailMap.get("filePath"));
+
         record.setReviewContent(detailMap.get("reviewContent"));
         
         if (detailMap.get("createTime") != null) {

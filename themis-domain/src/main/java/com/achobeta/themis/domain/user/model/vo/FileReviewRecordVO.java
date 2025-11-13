@@ -12,7 +12,7 @@ import java.util.List;
 public class FileReviewRecordVO {
     private String recordId;
     private String fileName;
-    private String filePath;
+
     private String reviewContent;
     private Long createTime;
     private Long updateTime;

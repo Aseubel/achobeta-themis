@@ -1,7 +1,7 @@
 package com.achobeta.themis.common.util;
 
-import com.achobeta.themis.common.exception.AuthenticationException;
-import com.achobeta.themis.common.exception.BusinessException;
+
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ public class SecurityUtils {
     /**
      * 获取当前用户ID
      * @return 用户ID
-     * @throws AuthenticationException 如果用户未登录
+     * @throws
      */
     public static String  getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -26,6 +26,12 @@ public class SecurityUtils {
 
         return  userId;
 
+    }
+
+    public static Long getId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long Id = (Long) ((Map<Long, Object>) authentication.getPrincipal()).get("id");
+        return Id;
     }
 }
 

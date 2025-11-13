@@ -12,8 +12,8 @@ public class SaveFileReviewRecordRequestVO {
     /**
      * 本地保存路径
      */
-    @NotBlank(message = "本地文件路径不能为空")
-    private String filePath;
+   /* @NotBlank(message = "本地文件路径不能为空")
+    private String filePath;*/
 
     /**
      * 审查结果内容

@@ -38,22 +38,22 @@ public interface IFileReviewHistoryService {
     class ReviewRecord {
         private String recordId;
         private String fileName;
-        private String filePath;
+
         private String reviewContent;
         private Long createTime;
         private Long updateTime;
         
         public ReviewRecord() {}
         
-        public ReviewRecord(String recordId, String fileName, String filePath, String reviewContent, Long createTime, Long updateTime) {
+        public ReviewRecord(String recordId, String fileName,  String reviewContent, Long createTime, Long updateTime) {
             this.recordId = recordId;
             this.fileName = fileName;
-            this.filePath = filePath;
+
             this.reviewContent = reviewContent;
             this.createTime = createTime;
             this.updateTime = updateTime;
         }
-        
+
         // Getters and Setters
         public String getRecordId() {
             return recordId;
@@ -71,13 +71,9 @@ public interface IFileReviewHistoryService {
             this.fileName = fileName;
         }
         
-        public String getFilePath() {
-            return filePath;
-        }
+
         
-        public void setFilePath(String filePath) {
-            this.filePath = filePath;
-        }
+
         
         public String getReviewContent() {
             return reviewContent;
