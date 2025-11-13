@@ -11,4 +11,5 @@ public interface IChatService {
      */
     List<List<QuestionTitleResponseVO>> searchQuestionTitles(Integer userType);
 
+    void consulterCorrect(String conversationId, String responseStr);
 }

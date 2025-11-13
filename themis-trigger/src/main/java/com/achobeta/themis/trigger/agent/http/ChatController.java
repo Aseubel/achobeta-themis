@@ -22,10 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -119,11 +122,16 @@ public class ChatController {
     /**
      * 查询当前用户的全部历史对话元信息
      */
+    @LoginRequired
     @GetMapping("/histories")
     public ApiResponse<List<IConversationHistoryService.ConversationMeta>> histories(
             @RequestParam("userId") Long userId
     ) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new BusinessException("未登录或token无效，禁止访问！");
+            }
             List<IConversationHistoryService.ConversationMeta> list = conversationHistoryService.listHistories(userId);
             return ApiResponse.success(list);
         } catch (Exception e) {
@@ -154,7 +162,7 @@ public class ChatController {
      * @return
      */
     @LoginRequired
-    @GetMapping("/secondary-question-titles/{userType}")
+    @GetMapping("/secondary_question_titles/{userType}")
     public ApiResponse<List<List<QuestionTitleResponseVO>>> searchQuestionTitles(@PathVariable("userType") @NotNull(message = "用户类型不能为空") Integer userType) {
         try {
             List<List<QuestionTitleResponseVO>> questionTitleDocuments = chatService.searchQuestionTitles(userType);
@@ -199,12 +207,12 @@ public class ChatController {
 //    /**
 //     * Ai改合同
 //     */
-//    @PostMapping("/stream")
-//    public ApiResponse<String> chat(@Valid @RequestBody ChatRequestVO request) {
+//    @PostMapping("/contract_consult")
+//    public ApiResponse<String> contractConsult(@Valid @RequestBody ChatRequestVO request) {
 //        try {
-//            List<String> response = chatService.chat(request.getConversationId(), request.getMessage()).collectList().block();
-//
+//            List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
 //            String responseStr = String.join("", response);
+//            chatService.consulterCorrect(request.getConversationId(), responseStr);
 //            return ApiResponse.success(responseStr);
 //        } catch (BusinessException e) {
 //            throw e;

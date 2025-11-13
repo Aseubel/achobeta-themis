@@ -3,6 +3,7 @@ package com.achobeta.themis.trigger.file.http;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.common.exception.BusinessException;
+import com.achobeta.themis.domain.user.service.IUserService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +17,7 @@ import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +38,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -47,8 +50,8 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class FileController {
 
-    @Autowired
-    private IAiChatService chatService;
+    private final IAiChatService chatService;
+    private final IUserService userService;
 
     @Autowired
     @Qualifier("redisChatMemoryStore")
@@ -63,14 +66,14 @@ public class FileController {
             @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
     ) {
         try {
-            if (file.isEmpty()) {
-                throw new BusinessException("上传文件不能为空");
-            }
+//            if (file.isEmpty()) {
+//                throw new BusinessException("上传文件不能为空");
+//            }
             if (conversationId == null || conversationId.isBlank()) {
                 throw new BusinessException("对话ID不能为空");
             }
 
-            String savedPath = saveToLocal(file, conversationId);
+            //String savedPath = saveToLocal(file, conversationId);
 
             String text = extractText(file);
             if (text == null || text.isBlank()) {
@@ -79,13 +82,17 @@ public class FileController {
             if (text.length() > MAX_TEXT_LENGTH) {
                 text = text.substring(0, MAX_TEXT_LENGTH);
             }
-
-            String prompt = buildReviewPrompt(file.getOriginalFilename(), text);
+            Long id = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
+            Integer userType = userService.getUserInfo(id).getUser().getUserType();
+            String prompt = buildReviewPrompt(file.getOriginalFilename(), text, userType);
             Flux<String> stream = chatService.chat(conversationId, prompt);
             List<String> chunks = stream.collectList().block();
             String review = String.join("", chunks);
 
-            return ApiResponse.success(new ReviewResult(conversationId, savedPath, review));
+            System.out.println("review: " + review);
+
+            //return ApiResponse.success(new ReviewResult(conversationId, savedPath, review));
+            return ApiResponse.success(new ReviewResult(conversationId, null, review));
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -98,12 +105,12 @@ public class FileController {
      * 查询对话历史记录
      */
     @GetMapping("/history")
-    public ApiResponse<List<ChatHistoryVO>> history(
+    public ApiResponse<List<ContractChatHistoryVO>> history(
             @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
     ) {
         try {
             List<ChatMessage> messages = chatMemoryStore.getMessages(conversationId);
-            List<ChatHistoryVO> history = messages.stream()
+            List<ContractChatHistoryVO> history = messages.stream()
                     .map(this::toHistory)
                     .collect(Collectors.toList());
             return ApiResponse.success(history);
@@ -145,6 +152,20 @@ public class FileController {
         return dest.toAbsolutePath().toString();
     }
 
+    /**
+     * 保存文件到OSS
+     * @param file
+     * @param conversationId
+     * @return
+     * @throws IOException
+     */
+    // TODO
+    private String saveToOOS(MultipartFile file, String conversationId) throws IOException {
+        // 实现上传到OSS的逻辑
+
+        return null;
+    }
+
     private String extractText(MultipartFile file) throws IOException, TikaException, SAXException {
         try (InputStream is = file.getInputStream()) {
             Tika tika = new Tika();
@@ -153,7 +174,7 @@ public class FileController {
         }
     }
 
-    private String buildReviewPrompt(String filename, String content) {
+    private String buildReviewPromptv1(String filename, String content, Integer usertype) {
         String header =
                 "你是一名中国劳动法与劳动合规的专业助手，现需审查以下合同文本。\n" +
                 "请严格按照“分级+结构化条目”的规则输出结果：\n\n" +
@@ -164,23 +185,51 @@ public class FileController {
                 "【每个问题项的固定结构】\n" +
                 "- 合同原句：\"...原文精确片段...\"\n" +
                 "- 相关条款：简要给出对应的法律/法规/司法解释（可概述条文要点）\n" +
-                "- 修改建议（个人用户）：站在个人用户视角的可操作修改建议\n" +
-                "- 修改建议（企业账号）：站在企业用工合规视角的可操作修改建议\n\n" +
+                "- 修改建议（当为个人用户才需要写）：站在个人用户视角的可操作修改建议\n" +
+                "- 修改建议（当为企业账号才需要写）：站在企业用工合规视角的可操作修改建议\n\n" +
                 "【输出格式要求】\n" +
                 "- 仅输出存在的分级板块，并按顺序：明显违法、缺失必备、存在风险。\n" +
                 "- 每个分级下使用有序列表逐条列出问题项，严格按上述四行结构填写。\n" +
                 "- 若三类均不存在，仅输出：完全合规条款\n\n" +
                 "文件名：" + (filename == null ? "未知" : filename) + "\n\n" +
+                "当前用户类型：" + usertype + "\n\n" +
                 "以下为待审查文本：\n\n";
         return header + content;
+    }
+
+    private String buildReviewPrompt(String filename, String content, Integer userType) {
+        String systemPrompt = "你是一名中国劳动法与劳动合规的专业助手，现需审查以下合同文本并以JSON格式输出结果，具体规则如下：" +
+                "\n\n一、分级要求\n仅呈现存在的分级(集合名称)；若“\"illegal\"”“\"missing\"”“\"risk\"”三类均不存在，则输出 \"legal\"(空集合)" +
+                "\n1. \"illegal\"：明确违反现行中国劳动法律法规或强制性标准的条款或表述\n" +
+                "2. \"missing\"：法律法规或监管实践中普遍要求但合同中缺失的关键条款（如必备要素、程序性条款）\n" +
+                "3. \"risk\"：可能引发争议或合规风险，但未必直接违法的条款或表述\n\n" +
+                "二、每个问题项的固定字段\\n每个问题项为JSON对象，包含以下字段（按要求填写，无对应内容时按规则处理）：\n" +
+                "- \"startIndex\"：整数类型，填写合同原句在文本中首个字符的位置索引（从0开始计数）\n" +
+                "- \"endIndex\"：整数类型，填写合同原句在文本中最后一个字符的位置索引,含标点（从0开始计数）\n" +
+                "- \"originalSentence\"：字符串类型，填写原文精确片段；缺失必备项填写\"无对应原文，合同未约定\"\n" +
+                "- \"relatedClauses\"：字符串类型，简要给出对应的法律/法规/司法解释（可概述条文要点）\n" +
+                "- \"suggestion\"：字符串类型，根据当前用户类型，填写站在个人用户 或 企业用户视角的修改建议；\n" +
+                "三、JSON输出格式要求\\n" +
+                "1. 整体为单个JSON对象，顶级字段仅包含存在的分级（\"illegal\"\"missing\"\"risk\"），无则不出现；三类均无时仅保留\"legal\"字段\n" +
+                "2. 各分级字段的值为数组类型，数组内每个元素为一个符合上述固定字段要求的问题项JSON对象\n" +
+                "3. 分级字段按\\\"illegal\"→\"missing\"→\"risk\"的顺序排列，数组内问题项按合同文本顺序（以原句位置索引为准）或重要性排序\n\n" +
+                "四、基础信息\n" +
+                "- 文件名：{filename}（filename为null时填写\"未知\"）\n" +
+                "- 当前用户类型：{usertype}\n\n待审查文本：\n{contract_text}\n\n" +
+                "注：使用时{filename}、{usertype}、{contract_text}替换为实际值，输出仅保留JSON数据，无任何额外冗余内容，确保JSON格式合法可解析。\n" +
+                "其中：\n" +
+                "filename：" + (filename == null ? "未知" : filename) + "\n" +
+                "userType：" + (userType == 1 ? "个人用户" : "企业用户") + "\n" +
+                "contractText：" + content + "\n";
+        return systemPrompt;
     }
 
     private String sanitize(String s) {
         return s.replaceAll("[\\\\/:*?\"<>|\\s]+", "_");
     }
 
-    private ChatHistoryVO toHistory(ChatMessage message) {
-        return new ChatHistoryVO(
+    private ContractChatHistoryVO toHistory(ChatMessage message) {
+        return new ContractChatHistoryVO(
                 message.type().name(),
                 resolveContent(message),
                 LocalDateTime.now()
@@ -210,7 +259,7 @@ public class FileController {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class ChatHistoryVO {
+    public static class ContractChatHistoryVO {
         private String role;
         private String content;
         private LocalDateTime timestamp;
