@@ -44,6 +44,7 @@ public class LoginCheckAspect {
         if (accessTokenValid) {
             // 保存用户信息到Spring Security上下文
             jwtUtil.saveUserInfoToSecurityContext(accessToken);
+          //  ThreadLocal
             return joinPoint.proceed();
         }
         else {

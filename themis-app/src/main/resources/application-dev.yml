@@ -85,5 +85,3 @@ logging:
 meilisearch:
   host: http://192.168.80.128:7700
   api-key: 123456
-
-
