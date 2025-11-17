@@ -3,18 +3,15 @@ package com.achobeta.themis.domain.user.service.impl;
 import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
-import com.achobeta.themis.common.util.IKPreprocessor;
+import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
-import com.achobeta.themis.common.agent.service.IAiChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -33,7 +30,7 @@ public class AdjudicatorServiceImpl implements IAdjudicatorService {
     public void adjudicate(Integer userType, String conversationId, String question) {
         List<QuestionTitleDocument> questionTitleDocuments = null;
         try {
-            questionTitleDocuments = meiliSearchComponent.fuzzySearchFromQuestionTitle(QUESTION_TITLE_DOCUMENTS, IKPreprocessor.segment(question, true), new String[]{"title_segmented"}, 1, QuestionTitleDocument.class);
+            questionTitleDocuments = meiliSearchComponent.fuzzySearchFromQuestionTitle(QUESTION_TITLE_DOCUMENTS, IKPreprocessorUtil.segment(question, true), new String[]{"title_segmented"}, 1, QuestionTitleDocument.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -54,7 +51,7 @@ public class AdjudicatorServiceImpl implements IAdjudicatorService {
                 meiliSearchComponent.addDocuments(QUESTION_TITLE_DOCUMENTS, List.of(QuestionTitleDocument.builder()
                         .id(UUID.randomUUID().toString())
                         .title(question)
-                        .titleSegmented(IKPreprocessor.segment(question, true))
+                        .titleSegmented(IKPreprocessorUtil.segment(question, true))
                         .primaryTag(primaryTag)
                         .count(1)
                         .createTime(LocalDateTime.now())

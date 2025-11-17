@@ -3,13 +3,10 @@ package com.achobeta.themis.common.agent.tool;
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
 import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.common.util.IKPreprocessor;
-import com.meilisearch.sdk.Client;
+import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -35,7 +32,7 @@ public class MeilisearchTool {
             document = QuestionTitleDocument.builder()
                     .id(UUID.randomUUID().toString())
                     .title(arg0)
-                    .titleSegmented(IKPreprocessor.segment(arg0, true))
+                    .titleSegmented(IKPreprocessorUtil.segment(arg0, true))
                     .primaryTag(arg1)
                     .count(1)
                     .createTime(LocalDateTime.now())

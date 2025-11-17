@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.achobeta.themis.common.Constant.SMS_CODE_EXPIRE_MINUTES;
+
 /**
  * @author Aseubel
  * @date 2025/10/27 上午2:20
@@ -302,7 +304,7 @@ public class UserServiceImpl implements IUserService{
         if (ObjectUtil.isEmpty(user)) {
             throw new BusinessException("手机号不存在");
         }
-        String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(1));
+        String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(SMS_CODE_EXPIRE_MINUTES));
         // 发送验证码
         log.info("发送验证码：{}", code);
 

@@ -7,7 +7,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IKPreprocessor {
+public class IKPreprocessorUtil {
     /**
      * 对文本进行IK分词处理
      * @param text 待分词的文本

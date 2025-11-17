@@ -71,14 +71,13 @@ public class ChatController {
     public ApiResponse<String> chat(@Valid @RequestBody ChatRequestVO request) {
         try {
             String userId = SecurityUtils.getCurrentUserId();
-            request.setId(userId);
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步处理问题分类");
                 adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
             });
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步触碰并续期对话历史");
-                conversationHistoryService.touch(request.getId(), request.getConversationId());
+                conversationHistoryService.touch(userId, request.getConversationId());
             });
             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);

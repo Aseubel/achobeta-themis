@@ -1,10 +1,8 @@
 package com.achobeta.themis.common.component;
 
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
-import com.achobeta.themis.common.util.IKPreprocessor;
+import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Index;
 import com.meilisearch.sdk.SearchRequest;
@@ -256,7 +254,7 @@ public class MeiliSearchComponent implements CommandLineRunner {
             Map<String, Object> testDoc = new HashMap<>();
             testDoc.put("id", "001");
             testDoc.put("title", "对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？");
-            testDoc.put("title_segmented", IKPreprocessor.segment("对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？", true));
+            testDoc.put("title_segmented", IKPreprocessorUtil.segment("对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？", true));
             testDoc.put("primaryTag", 4);
             testDoc.put("count", 1);
             testDoc.put("create_time", LocalDateTime.now());

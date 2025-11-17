@@ -72,10 +72,11 @@ jwt:
 
 # 阿里云短信配置
 aliyun:
-  access-key-id: ${aliyun-access-key-id}
-  access-key-secret: ${aliyun-access-key-secret}
-  template-code: ${aliyun-template-code}
-  sign-name: ${aliyun-sign-name}
+  sms:
+    access-key-id: ${aliyun-access-key-id}
+    access-key-secret: ${aliyun-access-key-secret}
+    template-code: ${aliyun-template-code}
+    sign-name: ${aliyun-sign-name}
 
 # 日志
 logging:

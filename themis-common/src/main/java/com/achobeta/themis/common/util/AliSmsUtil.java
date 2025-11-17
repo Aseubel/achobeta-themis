@@ -20,19 +20,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class AliSmsUtil {
     // 阿里云访问密钥ID
-    @Value("${aliyun.access-key-id}")
+    @Value("${aliyun.sms.access-key-id}")
     private String accessKeyId;
 
     // 阿里云访问密钥Secret
-    @Value("${aliyun.access-key-secret}")
+    @Value("${aliyun.sms.access-key-secret}")
     private String accessKeySecret;
 
     // 短信签名
-    @Value("${aliyun.sign-name}")
+    @Value("${aliyun.sms.sign-name}")
     private String signName;
 
     // 短信模板ID
-    @Value("${aliyun.template-code}")
+    @Value("${aliyun.sms.template-code}")
     private String templateCode;
 
     // 产品名称:云通信短信API产品
