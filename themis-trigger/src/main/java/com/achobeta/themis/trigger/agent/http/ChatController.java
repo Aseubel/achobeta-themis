@@ -8,6 +8,7 @@ import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.user.model.entity.ConversationMeta;
 import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
+import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
 import com.achobeta.themis.domain.user.service.IChatService;
 import com.achobeta.themis.domain.user.service.IConversationHistoryService;
@@ -15,6 +16,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,7 +51,6 @@ public class ChatController {
     private final IChatService chatService;
 
     @Autowired
-    @Qualifier("redisChatMemoryStore")
     private ChatMemoryStore chatMemoryStore;
 
     @Autowired
@@ -71,18 +66,18 @@ public class ChatController {
      * @param request
      * @return
      */
+    @LoginRequired
     @PostMapping("/consult")
     public ApiResponse<String> chat(@Valid @RequestBody ChatRequestVO request) {
         try {
             String userId = SecurityUtils.getCurrentUserId();
-            request.setId(userId);
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步处理问题分类");
                 adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
             });
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步触碰并续期对话历史");
-                conversationHistoryService.touch(request.getId(), request.getConversationId());
+                conversationHistoryService.touch(userId, request.getConversationId());
             });
             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
@@ -174,10 +169,11 @@ public class ChatController {
      * 查询常问问题（二级标题）
      * @return
      */
-    @GetMapping("/secondary-question-titles")
-    public ApiResponse<List<List<QuestionTitleDocument>>> searchQuestionTitles() {
+    @LoginRequired
+    @GetMapping("/secondary_question_titles/{userType}")
+    public ApiResponse<List<List<QuestionTitleResponseVO>>> searchQuestionTitles(@PathVariable("userType") @NotNull(message = "用户类型不能为空") Integer userType) {
         try {
-            List<List<QuestionTitleDocument>> questionTitleDocuments = chatService.searchQuestionTitles();
+            List<List<QuestionTitleResponseVO>> questionTitleDocuments = chatService.searchQuestionTitles(userType);
             return ApiResponse.success(questionTitleDocuments);
         } catch (BusinessException e) {
             throw e;
@@ -219,12 +215,12 @@ public class ChatController {
 //    /**
 //     * Ai改合同
 //     */
-//    @PostMapping("/stream")
-//    public ApiResponse<String> chat(@Valid @RequestBody ChatRequestVO request) {
+//    @PostMapping("/contract_consult")
+//    public ApiResponse<String> contractConsult(@Valid @RequestBody ChatRequestVO request) {
 //        try {
-//            List<String> response = chatService.chat(request.getConversationId(), request.getMessage()).collectList().block();
-//
+//            List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
 //            String responseStr = String.join("", response);
+//            chatService.consulterCorrect(request.getConversationId(), responseStr);
 //            return ApiResponse.success(responseStr);
 //        } catch (BusinessException e) {
 //            throw e;

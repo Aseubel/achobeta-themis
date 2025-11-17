@@ -4,6 +4,8 @@ import com.aliyun.oss.*;
 import com.aliyun.oss.common.auth.CredentialsProviderFactory;
 import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
 import com.aliyun.oss.common.comm.SignVersion;
+import com.aliyun.oss.internal.Mimetypes;
+import com.aliyun.oss.internal.OSSHeaders;
 import com.aliyun.oss.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,10 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.achobeta.themis.common.Constant.*;
 
@@ -32,6 +31,8 @@ public class AliOSSUtil {
     public String upload(InputStream inputStream, String objectName) throws com.aliyuncs.exceptions.ClientException {
         // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
         EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
+        String accessKeyId = credentialsProvider.getCredentials().getAccessKeyId();
+        String secretAccessKey = credentialsProvider.getCredentials().getSecretAccessKey();
 
         // 创建OSSClient实例。
         ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
@@ -47,10 +48,16 @@ public class AliOSSUtil {
             // 创建PutObjectRequest对象。
             PutObjectRequest putObjectRequest = new PutObjectRequest(BUCKET_NAME, objectName, inputStream);
             // 如果需要上传时设置存储类型和访问权限，请参考以下示例代码。
-            // ObjectMetadata metadata = new ObjectMetadata();
-            // metadata.setHeader(OSSHeaders.OSS_STORAGE_CLASS, StorageClass.Standard.toString());
-            // metadata.setObjectAcl(CannedAccessControlList.Private);
-            // putObjectRequest.setMetadata(metadata);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setHeader(OSSHeaders.OSS_STORAGE_CLASS, StorageClass.Standard.toString());
+            metadata.setObjectAcl(CannedAccessControlList.Private);
+            String contentType = Mimetypes.getInstance().getMimetype(objectName);
+            if (contentType != null && !contentType.isEmpty()) {
+                metadata.setContentType(contentType);
+            } else {
+                metadata.setContentType("application/octet-stream");
+            }
+             putObjectRequest.setMetadata(metadata);
 
             // 上传文件。
             PutObjectResult result = ossClient.putObject(putObjectRequest);
@@ -67,6 +74,7 @@ public class AliOSSUtil {
                     + "a serious internal problem while trying to communicate with OSS, "
                     + "such as not being able to access the network.");
             log.error("Error Message:{}", ce.getMessage());
+            throw ce;
         } finally {
             if (ossClient != null) {
                 ossClient.shutdown();
@@ -97,9 +105,17 @@ public class AliOSSUtil {
         return null;
     }
 
-    public String upload(String id, MultipartFile file) throws com.aliyuncs.exceptions.ClientException {
+    /**
+     * 文件上传
+     *
+     * @param id   文件夹路径
+     * @param file 文件字节码
+     * @return 返回文件上传路径
+     */
+    public String upload(String id, MultipartFile file, String fileName) throws com.aliyuncs.exceptions.ClientException {
         try {
-            return upload(file.getInputStream(), objectName(id, file.getOriginalFilename()));
+            // return upload(file.getInputStream(), objectName(id, file.getOriginalFilename()));
+            return upload(file.getInputStream(), objectName(id, fileName));
         } catch (IOException e) {
             log.error("Caught an IOException, which means an error occurred while reading the file.");
         }
@@ -287,7 +303,7 @@ public class AliOSSUtil {
                 .build();
         try {
             // ossObject包含文件所在的存储空间名称、文件名称、文件元数据以及一个输入流。
-            OSSObject ossObject = ossClient.getObject(BUCKET_NAME, objectName);
+            OSSObject ossObject = ossClient.getObject(BUCKET_NAME,objectName);
             InputStream inputStream = ossObject.getObjectContent();
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             // 读取文件内容到字节数组。
@@ -454,5 +470,24 @@ public class AliOSSUtil {
                 .append("/")
                 .append(objectName(id, originalFileName));
         return stringBuilder.toString();
+    }
+
+    /**
+     * 获取oss的临时url
+     */
+     public String getOssTemporaryUrl(String conversationId, String originalFileName) throws com.aliyuncs.exceptions.ClientException {
+         // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
+         EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
+
+         // 创建OSSClient实例。
+         ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
+         clientBuilderConfiguration.setSignatureVersion(SignVersion.V4);
+         OSS ossClient = OSSClientBuilder.create()
+                 .endpoint(ENDPOINT)
+                 .credentialsProvider(credentialsProvider)
+                 .clientConfiguration(clientBuilderConfiguration)
+                 .region(REGION)
+                 .build();
+        return ossClient.generatePresignedUrl(BUCKET_NAME, objectName(conversationId, originalFileName), new Date(System.currentTimeMillis() + 1000 * 60 * 5)).toString();
     }
 }

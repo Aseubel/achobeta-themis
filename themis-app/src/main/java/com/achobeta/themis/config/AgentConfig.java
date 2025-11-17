@@ -1,9 +1,11 @@
 package com.achobeta.themis.config;
 
+import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.agent.tool.MeilisearchTool;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.infrastructure.user.repo.RedisChatMemoryStore;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.data.message.SystemMessage;
@@ -25,6 +27,10 @@ public class AgentConfig {
     private AgentConfigProperties agentConfigProperties;
     @Autowired
     private RedisChatMemoryStore redisChatMemoryStore;
+    @Autowired
+    private MeilisearchTool meilisearchTool;
+
+
 
     @Bean("consulter")
     public IAiChatService consulterService() throws IOException {
@@ -61,31 +67,28 @@ public class AgentConfig {
                 .build();
     }
 
+
     @Bean("adjudicator")
-    public IAiChatService adjudicatorService() throws IOException {
-        // 读取 prompt-adjudicator.txt 文件
+    public IAiAdjudicatorService adjudicatorService() throws IOException {
         ClassPathResource resource = new ClassPathResource("prompt-adjudicator.txt");
         String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
         log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
-
-        // 创建系统消息
         SystemMessage systemMessage = SystemMessage.from(systemPrompt);
-
-        OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
+        OpenAiChatModel model = OpenAiChatModel.builder()
                 .baseUrl(agentConfigProperties.getBaseUrl())
                 .apiKey(agentConfigProperties.getApiKey())
                 .modelName(agentConfigProperties.getModel())
+                .logRequests(true)
+                .logResponses(true)
                 .build();
-
-        return AiServices.builder(IAiChatService.class)
-                .streamingChatModel(model)
+        return AiServices.builder(IAiAdjudicatorService.class)
+                .chatModel(model)
                 .chatMemoryProvider(conversationId ->{
                     MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
                             .chatMemoryStore(redisChatMemoryStore)
                             .id(conversationId)
-                            .maxMessages(100)
+                            .maxMessages(2)
                             .build();
-
                     boolean hasSystemMessage = memory.messages().stream()
                             .anyMatch(msg -> msg instanceof SystemMessage);
                     if (!hasSystemMessage) {
@@ -93,9 +96,8 @@ public class AgentConfig {
                     }
                     return memory;
                 })
-                .tools(new MeilisearchTool())
+                .tools(meilisearchTool)
                 .build();
-    }
-
+        }
 
 }

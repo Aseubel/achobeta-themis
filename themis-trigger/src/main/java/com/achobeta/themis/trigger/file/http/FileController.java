@@ -11,9 +11,11 @@ import com.achobeta.themis.domain.user.model.entity.ReviewResult;
 import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.model.entity.fileReturn;
 import com.achobeta.themis.domain.user.model.vo.ChatHistoryVO;
+import com.achobeta.themis.domain.user.model.vo.DownLoadFileRequest;
 import com.achobeta.themis.domain.user.model.vo.FileReviewRecordVO;
 import com.achobeta.themis.domain.user.model.vo.SaveFileReviewRecordRequestVO;
 import com.achobeta.themis.domain.user.service.IFileReviewHistoryService;
+import com.achobeta.themis.domain.user.service.IFileService;
 import com.achobeta.themis.domain.user.service.IUserService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
@@ -28,7 +30,12 @@ import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,13 +44,16 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
@@ -54,21 +64,27 @@ import java.lang.reflect.Method;
 @RestController
 @RequestMapping("/api/file")
 @RequiredArgsConstructor
-
 public class FileController {
+
     private final IUserService userService;
+
     @Autowired
-    @Qualifier("adjudicator")
     private IAiChatService chatService;
 
-    @Autowired
-    @Qualifier("redisChatMemoryStore")
-    private ChatMemoryStore chatMemoryStore;
-    
     private final IFileReviewHistoryService fileReviewHistoryService;
 
+    private final IFileService fileService;
+
+
+
     private static final int MAX_TEXT_LENGTH = 20000;
-    private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+
+    private static final Map<String, MediaType> CONTENT_TYPE_MAP = new HashMap<>();
+    static {
+        CONTENT_TYPE_MAP.put("application/pdf", MediaType.APPLICATION_PDF);
+        CONTENT_TYPE_MAP.put("docx", MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+    }
+
 /**
 * 提交内容审查
 * */
@@ -91,7 +107,7 @@ public class FileController {
             }
 
             Long id= SecurityUtils.getId();
-             UserModel userModel = userService.getUserInfo(id);
+            UserModel userModel = userService.getUserInfo(id);
             Integer userType = userModel.getUser().getUserType();
             String prompt = buildReviewPrompt(fileName, text,userType);
             Flux<String> stream = chatService.chat(conversationId, prompt);
@@ -212,9 +228,9 @@ public class FileController {
     ) {
         try {
            String userId = SecurityUtils.getCurrentUserId();
-            List<IFileReviewHistoryService.ReviewRecord> records = 
+            List<IFileReviewHistoryService.ReviewRecord> records =
                     fileReviewHistoryService.getUserReviewRecords(userId);
-            
+
             List<FileReviewRecordVO> recordVOs = records.stream()
                     .map(record -> new FileReviewRecordVO(
                             record.getRecordId(),
@@ -224,8 +240,8 @@ public class FileController {
                             record.getUpdateTime()
                     ))
                     .collect(Collectors.toList());
-            
-            FileReviewRecordVO.ReviewRecordListVO result = 
+
+            FileReviewRecordVO.ReviewRecordListVO result =
                     new FileReviewRecordVO.ReviewRecordListVO(recordVOs);
             return ApiResponse.success(result);
         } catch (BusinessException e) {
@@ -248,13 +264,13 @@ public class FileController {
     ) {
         try {
             String userId = SecurityUtils.getCurrentUserId();
-            IFileReviewHistoryService.ReviewRecord record = 
+            IFileReviewHistoryService.ReviewRecord record =
                     fileReviewHistoryService.getReviewRecord(userId, recordId);
-            
+
             if (record == null) {
                 return ApiResponse.error("审查记录不存在或无权访问");
             }
-            
+
             FileReviewRecordVO recordVO = new FileReviewRecordVO(
                     record.getRecordId(),
                     record.getFileName(),
@@ -263,7 +279,7 @@ public class FileController {
                     record.getCreateTime(),
                     record.getUpdateTime()
             );
-            
+
             return ApiResponse.success(recordVO);
         } catch (BusinessException e) {
             throw e;
@@ -295,21 +311,45 @@ public class FileController {
         }
     }
 
-
-    private String saveToLocal(MultipartFile file, String conversationId) throws IOException {
-        Path base = Paths.get("D:\\A\\ruku\\upload");
-        Path dir = base.resolve(sanitize(conversationId));
-        Files.createDirectories(dir);
-        String ts = LocalDateTime.now().format(TS_FMT);
-        String original = file.getOriginalFilename();
-        String safeName = ts + "_" + sanitize(original == null ? "unknown" : original);
-        Path dest = dir.resolve(safeName);
-        try (InputStream in = file.getInputStream()) {
-            Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
+    /**
+     * 下载文件
+     * @param request 下载文件请求参数
+     * @return 下载url
+     */
+    @LoginRequired
+    @PostMapping("/download")
+    public ResponseEntity<Resource> downloadFile(@RequestBody DownLoadFileRequest request) {
+        try {
+            Resource resource = fileService.generateDownloadResource(request.getIsChange(), request.getConversationId(), request.getContentType(), fileService.contentTransform(request.getContent()));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + URLEncoder.encode(resource.getFilename() + request.getContentType(), "UTF-8") + "\"") // 中文文件名编码
+                    .contentType(CONTENT_TYPE_MAP.getOrDefault(request.getContentType(), MediaType.APPLICATION_OCTET_STREAM))
+                    .body(resource);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("下载文件失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
-        log.info("文件已保存到本地：{}", dest.toAbsolutePath());
-        return dest.toAbsolutePath().toString();
     }
+
+
+//    private String saveToLocal(MultipartFile file, String conversationId) throws IOException {
+//        Path base = Paths.get("D:\\A\\ruku\\upload");
+//        Path dir = base.resolve(sanitize(conversationId));
+//        Files.createDirectories(dir);
+//        String ts = LocalDateTime.now().format(TS_FMT);
+//        String original = file.getOriginalFilename();
+//        String safeName = ts + "_" + sanitize(original == null ? "unknown" : original);
+//        Path dest = dir.resolve(safeName);
+//        try (InputStream in = file.getInputStream()) {
+//            Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
+//        }
+//        log.info("文件已保存到本地：{}", dest.toAbsolutePath());
+//        return dest.toAbsolutePath().toString();
+//    }
 
     private String extractText(MultipartFile file) throws IOException, TikaException, SAXException {
         try (InputStream is = file.getInputStream()) {
@@ -345,6 +385,7 @@ public class FileController {
                 "contractText：" + content + "\n";
         return systemPrompt;
     }
+
     private String sanitize(String s) {
         return s.replaceAll("[\\\\/:*?\"<>|\\s]+", "_");
     }

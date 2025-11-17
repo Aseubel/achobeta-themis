@@ -1,13 +1,18 @@
 package com.achobeta.themis.domain.user.service.impl;
 
+import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
+import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.achobeta.themis.domain.user.service.IAdjudicatorService;
-import com.achobeta.themis.common.agent.service.IAiChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 
 @Service
@@ -19,23 +24,42 @@ public class AdjudicatorServiceImpl implements IAdjudicatorService {
 
     @Autowired
     @Qualifier("adjudicator")
-    private IAiChatService adjudicatorAgentService;
+    private IAiAdjudicatorService adjudicatorAgentService;
 
     @Override
-    public void adjudicate(String userType, String conversationId, String question) {
-        // 使用meiliSearch模糊查询问题分类
-        QuestionTitleDocument questionTitleDocument = meiliSearchComponent.semanticSearchFromQuestionTitle(question);
-
-        //如果查询到问题分类，判断问题分类的阈值是否在设定的阈值内
-        if (questionTitleDocument != null) {
-            //如果在，将count加1
+    public void adjudicate(Integer userType, String conversationId, String question) {
+        List<QuestionTitleDocument> questionTitleDocuments = null;
+        try {
+            questionTitleDocuments = meiliSearchComponent.fuzzySearchFromQuestionTitle(QUESTION_TITLE_DOCUMENTS, IKPreprocessorUtil.segment(question, true), new String[]{"title_segmented"}, 1, QuestionTitleDocument.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (!questionTitleDocuments.isEmpty()) {
+            QuestionTitleDocument questionTitleDocument = questionTitleDocuments.getFirst();
             meiliSearchComponent.updateCount(QUESTION_TITLE_DOCUMENTS, questionTitleDocument.getId(), questionTitleDocument.getCount() + 1);
         } else {
-            //如果不在，调用ai使用工具包将问题新增为一个新分类
-            // TODO：查找问题上下文并打包为一个字符串
-            String context = "";
-            String chatContext = "用户类型" + userType + ";\n 当前问题：" + question + ";\n 讨论问题的上下文信息：" + context;
-            adjudicatorAgentService.chat(conversationId, chatContext);
+            // TODO: ai 版本有问题，后期再优化
+            // 查找问题上下文并打包为一个字符串
+//            String context = "";
+//            String chatContext = "用户类型" + userType + ";\n 当前问题：" + question + ";\n 讨论问题的上下文信息：" + context;
+//            String adjudicate = adjudicatorAgentService.chat("adjudicate_" + conversationId, chatContext);
+//            System.out.println(adjudicate);
+            String adjudicate = adjudicatorAgentService.chat("adjudicate_" + conversationId, "UserType" + userType + ";\n 当前问题：" + question);
+            // 提取 primaryTag
+            int primaryTag = Integer.parseInt(adjudicate.replaceAll("\\D+", ""));
+            try {
+                meiliSearchComponent.addDocuments(QUESTION_TITLE_DOCUMENTS, List.of(QuestionTitleDocument.builder()
+                        .id(UUID.randomUUID().toString())
+                        .title(question)
+                        .titleSegmented(IKPreprocessorUtil.segment(question, true))
+                        .primaryTag(primaryTag)
+                        .count(1)
+                        .createTime(LocalDateTime.now())
+                        .build()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
+

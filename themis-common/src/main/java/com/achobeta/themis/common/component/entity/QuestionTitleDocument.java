@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class QuestionTitleDocument {
         private String id;
         private String title;
+        private String titleSegmented;
         private Integer primaryTag;
         private Integer count;
         private LocalDateTime createTime;

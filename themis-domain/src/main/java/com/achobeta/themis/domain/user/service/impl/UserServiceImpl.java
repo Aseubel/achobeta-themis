@@ -21,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.achobeta.themis.common.Constant.SMS_CODE_EXPIRE_MINUTES;
 
 /**
  * @author Aseubel
@@ -228,7 +231,7 @@ public class UserServiceImpl implements IUserService{
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BusinessException("未登录或token无效，禁止访问！");
         }
-        Long currentUserId = (Long) authentication.getPrincipal();
+        Long currentUserId = (Long) ((Map<String, Object>) authentication.getPrincipal()).get("id");
         if (!currentUserId.equals(user.getId())) {
             throw new BusinessException("您没有权限修改其他用户的密码");
         }
@@ -255,7 +258,7 @@ public class UserServiceImpl implements IUserService{
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BusinessException("未登录或token无效，禁止访问！");
         }
-        Long currentUserId = (Long) authentication.getPrincipal();
+        Long currentUserId = (Long) ((Map<String, Object>) authentication.getPrincipal()).get("id");
         if (!currentUserId.equals(user.getId())) {
             throw new BusinessException("您没有权限修改其他用户的用户名");
         }
@@ -301,7 +304,7 @@ public class UserServiceImpl implements IUserService{
         if (ObjectUtil.isEmpty(user)) {
             throw new BusinessException("手机号不存在");
         }
-        String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(1));
+        String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(SMS_CODE_EXPIRE_MINUTES));
         // 发送验证码
         log.info("发送验证码：{}", code);
 

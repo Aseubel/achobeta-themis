@@ -1,29 +1,23 @@
 package com.achobeta.themis.common.component;
 
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
+import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Index;
 import com.meilisearch.sdk.SearchRequest;
 import com.meilisearch.sdk.exceptions.MeilisearchException;
-import com.meilisearch.sdk.model.Hybrid;
-import com.meilisearch.sdk.model.Results;
-import com.meilisearch.sdk.model.SearchResult;
-import com.meilisearch.sdk.model.Settings;
+import com.meilisearch.sdk.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
-@Component("meiliSearchUtils")
+@Component
 @Slf4j
 public class MeiliSearchComponent implements CommandLineRunner {
 
@@ -156,6 +150,46 @@ public class MeiliSearchComponent implements CommandLineRunner {
     }
 
     /**
+     * 执行模糊搜索（关键词搜索）
+     * @param indexName 索引名称
+     * @param query 搜索关键词
+     * @param attributesToSearchOn 要搜索的属性数组
+     * @param limit 限制返回的文档数量，例如 10
+     * @return 符合条件的文档列表
+     */
+    public <T> List<T> fuzzySearchFromQuestionTitle(String indexName, String query, String[] attributesToSearchOn, Integer limit, Class<T> clazz) throws MeilisearchException {
+        if (indexName == null || indexName.trim().isEmpty()) {
+            throw new IllegalArgumentException("索引名不能为 null 或空字符串");
+        }
+        if (query == null || query.trim().isEmpty()) {
+            throw new IllegalArgumentException("查询关键词不能为 null 或空字符串");
+        }
+        if (attributesToSearchOn == null || attributesToSearchOn.length == 0) {
+            throw new IllegalArgumentException("要搜索的属性数组不能为 null 或空数组");
+        }
+        if (limit == null || limit <= 0) {
+            throw new IllegalArgumentException("limit 必须大于0");
+        }
+        try {
+            Index index = meiliSearchClient.index(indexName);
+            SearchRequest req = new SearchRequest(query);
+            req.setAttributesToSearchOn(attributesToSearchOn);
+            req.setLimit(limit);
+  //          req.setMatchingStrategy(MatchingStrategy.FREQUENCY);
+            SearchResult raw = (SearchResult) index.search(req);
+            if (raw == null || raw.getHits() == null || raw.getHits().isEmpty()) {
+                return Collections.emptyList();
+            }
+
+                String json = JSON.toJSONString(raw.getHits());
+                return JSON.parseArray(json, clazz);
+        } catch (Exception e) {
+            log.error("执行模糊搜索失败，query={}, limit={}, clazz={}", query, limit, clazz, e);
+            throw e;
+        }
+    }
+
+    /**
      * 检查索引是否存在
      * @param indexName 索引名称
      * @return 如果索引存在则返回true，否则返回false
@@ -179,10 +213,13 @@ public class MeiliSearchComponent implements CommandLineRunner {
      * 配置索引字段为可搜索、可过滤、可排序
      * @throws IOException 如果初始化过程中发生IO错误
      */
-    public void initQuestionRankingIndex() throws IOException {
+    public void initQuestionRankingIndex() throws IOException, InterruptedException {
         try {
             if (isIndexExists(QUESTION_TITLE_DOCUMENTS)) {
                 log.info("索引 {} 已存在，无需重复创建", QUESTION_TITLE_DOCUMENTS);
+                // 删除索引
+                //meiliSearchClient.deleteIndex(QUESTION_TITLE_DOCUMENTS);
+                //Thread.sleep(500);
                 return;
             }
         }
@@ -190,16 +227,46 @@ public class MeiliSearchComponent implements CommandLineRunner {
             throw new RuntimeException(e);
         }
         try {
+            meiliSearchClient.createIndex(QUESTION_TITLE_DOCUMENTS);
             Index index = meiliSearchClient.index(QUESTION_TITLE_DOCUMENTS);
             Settings settings = new Settings();
-            settings.setSearchableAttributes(new String[]{ "title" });
-            settings.setFilterableAttributes(new String[]{ "primaryTag", "count", "create_time" });
-            settings.setSortableAttributes(new String[]{ "count", "create_time" });
-            index.updateSettings(settings);
+
+            settings.setSearchableAttributes(new String[]{ "title_segmented" });
+            settings.setFilterableAttributes(new String[]{ "primaryTag", "count" });
+            settings.setSortableAttributes(new String[]{ "count" });
+
+            TypoTolerance typoTolerance = new TypoTolerance();
+            HashMap<String, Integer> minWordSizeTypos =
+                    new HashMap<String, Integer>() {
+                        {
+                            put("oneTypo", 3);
+                            put("twoTypos", 6);
+                        }
+                    };
+
+            typoTolerance.setMinWordSizeForTypos(minWordSizeTypos);
+
+            TaskInfo taskInfo = index.updateSettings(settings);
+            meiliSearchClient.waitForTask(taskInfo.getTaskUid());
+            Settings currentSettings = index.getSettings();
+            System.out.println("当前可搜索属性: " + Arrays.toString(currentSettings.getSearchableAttributes()));
+
+            Map<String, Object> testDoc = new HashMap<>();
+            testDoc.put("id", "001");
+            testDoc.put("title", "对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？");
+            testDoc.put("title_segmented", IKPreprocessorUtil.segment("对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？", true));
+            testDoc.put("primaryTag", 4);
+            testDoc.put("count", 1);
+            testDoc.put("create_time", LocalDateTime.now());
+            index.addDocuments(JSON.toJSONString(Collections.singletonList(testDoc)));
+            log.info("已插入测试文档，确保 title_segmented 字段可搜索");
+
             log.info("索引 {} 创建并配置成功", QUESTION_TITLE_DOCUMENTS);
         }
         catch (MeilisearchException e) {
             log.error("创建索引失败", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
