@@ -25,6 +25,7 @@ public class MeiliSearchComponent implements CommandLineRunner {
     private Client meiliSearchClient;
 
     private final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
+    private final String LAW_DOCUMENTS = "law_documents";
 
 
     /**
@@ -42,8 +43,31 @@ public class MeiliSearchComponent implements CommandLineRunner {
         try {
             Index index = meiliSearchClient.index(indexName);
             String json = JSON.toJSONString(docs);
-            index.addDocuments(json);
-            log.info("已向索引 {} 添加 {} 条文档", indexName, docs.size());
+            
+            log.info("准备向索引 {} 添加 {} 条文档", indexName, docs.size());
+            TaskInfo taskInfo = index.addDocuments(json);
+            
+            log.info("文档已提交，taskUid={}, status={}", taskInfo.getTaskUid(), taskInfo.getStatus());
+            
+            // 等待任务完成
+            log.info("正在等待 Meilisearch 索引任务完成...");
+            meiliSearchClient.waitForTask(taskInfo.getTaskUid());
+            
+            // 获取任务详情
+            Task task = meiliSearchClient.getTask(taskInfo.getTaskUid());
+            log.info("任务完成: taskUid={}, status={}, type={}", 
+                    task.getUid(), task.getStatus(), task.getType());
+            
+            // 检查任务状态
+            if ("failed".equals(task.getStatus())) {
+                log.error("索引任务失败: {}", task.getError());
+                throw new RuntimeException("索引任务失败: " + task.getError());
+            }
+            
+            // 验证文档数量
+            IndexStats stats = index.getStats();
+            log.info("✅ 成功添加文档到索引 {}，当前索引文档总数: {}", indexName, stats.getNumberOfDocuments());
+            
         }
         catch (MeilisearchException e) {
             log.error("向索引 {} 添加文档失败", indexName, e);
@@ -270,8 +294,90 @@ public class MeiliSearchComponent implements CommandLineRunner {
         }
     }
 
+    /**
+     * 初始化法律法规索引
+     * 配置索引字段为可搜索、可过滤、可排序
+     */
+    public void initLawIndex() throws Exception {
+        try {
+            if (isIndexExists(LAW_DOCUMENTS)) {
+                log.info("索引 {} 已存在，无需重复创建", LAW_DOCUMENTS);
+                return;
+            }
+        } catch (MeilisearchException e) {
+            throw new RuntimeException(e);
+        }
+        
+        try {
+            meiliSearchClient.createIndex(LAW_DOCUMENTS);
+            Index index = meiliSearchClient.index(LAW_DOCUMENTS);
+            Settings settings = new Settings();
+
+            // 设置可搜索字段：法条原文分词、法律名称
+            settings.setSearchableAttributes(new String[]{ "originalTextSegmented", "lawName" });
+            // 设置可过滤字段：法律分类ID、条款号、发布年份
+            settings.setFilterableAttributes(new String[]{ "lawCategoryId", "articleNumber", "issueYear" });
+            // 设置可排序字段：条款号
+            settings.setSortableAttributes(new String[]{ "articleNumber" });
+
+            // 配置容错
+            TypoTolerance typoTolerance = new TypoTolerance();
+            HashMap<String, Integer> minWordSizeTypos = new HashMap<String, Integer>() {{
+                put("oneTypo", 3);
+                put("twoTypos", 6);
+            }};
+            typoTolerance.setMinWordSizeForTypos(minWordSizeTypos);
+
+            TaskInfo taskInfo = index.updateSettings(settings);
+            meiliSearchClient.waitForTask(taskInfo.getTaskUid());
+            
+            log.info("索引 {} 创建并配置成功", LAW_DOCUMENTS);
+        } catch (MeilisearchException e) {
+            log.error("创建法律索引失败", e);
+            throw e;
+        }
+    }
+
+    /**
+     * 搜索法律法规
+     * @param query 搜索关键词（已分词）
+     * @param lawCategoryId 法律分类ID（可选）
+     * @param limit 返回数量
+     * @return 法律文档列表
+     */
+    public <T> List<T> searchLawDocuments(String query, Integer lawCategoryId, Integer limit, Class<T> clazz) throws MeilisearchException {
+        if (query == null || query.trim().isEmpty()) {
+            throw new IllegalArgumentException("查询关键词不能为 null 或空字符串");
+        }
+        
+        try {
+            Index index = meiliSearchClient.index(LAW_DOCUMENTS);
+            SearchRequest req = new SearchRequest(query);
+            req.setAttributesToSearchOn(new String[]{"originalTextSegmented", "lawName"});
+            
+            // 如果指定了法律分类，添加过滤条件
+            if (lawCategoryId != null) {
+                req.setFilter(new String[]{"lawCategoryId = " + lawCategoryId});
+            }
+            
+            req.setLimit(limit != null && limit > 0 ? limit : 10);
+            
+            SearchResult raw = (SearchResult) index.search(req);
+            if (raw == null || raw.getHits() == null || raw.getHits().isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String json = JSON.toJSONString(raw.getHits());
+            return JSON.parseArray(json, clazz);
+        } catch (Exception e) {
+            log.error("搜索法律文档失败，query={}, lawCategoryId={}, limit={}", query, lawCategoryId, limit, e);
+            throw e;
+        }
+    }
+
     @Override
     public void run(String... args) throws Exception {
         initQuestionRankingIndex();
+        initLawIndex();
     }
 }

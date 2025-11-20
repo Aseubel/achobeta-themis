@@ -1,6 +1,7 @@
 package com.achobeta.themis.config;
 
 import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
+import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.agent.tool.MeilisearchTool;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.infrastructure.user.repo.RedisChatMemoryStore;
@@ -67,7 +68,39 @@ public class AgentConfig {
                 .build();
     }
 
+    @Bean("Knowledge")
+    public IAiKnowledgeService KnowledgeService() throws IOException {
+        // 读取 prompt-consulter.txt 文件
+        ClassPathResource resource = new ClassPathResource("prompt-zhishiku.txt");
+        String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
+        log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
 
+        // 创建系统消息
+        SystemMessage systemMessage = SystemMessage.from(systemPrompt);
+        OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
+                .baseUrl(agentConfigProperties.getBaseUrl())
+                .apiKey(agentConfigProperties.getApiKey())
+                .modelName(agentConfigProperties.getModel())
+                .build();
+
+        return AiServices.builder(IAiKnowledgeService.class)
+                .streamingChatModel(model)
+                .chatMemoryProvider(conversationId ->{
+                    MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
+                            .chatMemoryStore(redisChatMemoryStore)
+                            .id(conversationId)
+                            .maxMessages(100)
+                            .build();
+
+                    boolean hasSystemMessage = memory.messages().stream()
+                            .anyMatch(msg -> msg instanceof SystemMessage);
+                    if (!hasSystemMessage) {
+                        memory.add(systemMessage);
+                    }
+                    return memory;
+                })
+                .build();
+    }
     @Bean("adjudicator")
     public IAiAdjudicatorService adjudicatorService() throws IOException {
         ClassPathResource resource = new ClassPathResource("prompt-adjudicator.txt");
@@ -89,6 +122,8 @@ public class AgentConfig {
                             .id(conversationId)
                             .maxMessages(2)
                             .build();
+
+
                     boolean hasSystemMessage = memory.messages().stream()
                             .anyMatch(msg -> msg instanceof SystemMessage);
                     if (!hasSystemMessage) {
@@ -99,5 +134,7 @@ public class AgentConfig {
                 .tools(meilisearchTool)
                 .build();
         }
+
+
 
 }
