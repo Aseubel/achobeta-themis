@@ -353,7 +353,7 @@ public class MeiliSearchComponent implements CommandLineRunner {
         try {
             Index index = meiliSearchClient.index(LAW_DOCUMENTS);
             SearchRequest req = new SearchRequest(query);
-            req.setAttributesToSearchOn(new String[]{"originalTextSegmented", "lawName"});
+            req.setAttributesToSearchOn(new String[]{"originalTextSegmented", "lawName"});//设置可搜索字段
             
             // 如果指定了法律分类，添加过滤条件
             if (lawCategoryId != null) {

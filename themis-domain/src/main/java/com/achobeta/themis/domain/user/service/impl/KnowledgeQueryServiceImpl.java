@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -89,7 +90,7 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
                 log.info("第{}个法条AI解析完成，长度: {}", i + 1, aiAnalysis.length());
             } catch (Exception e) {
                 log.error("第{}个法条AI解析失败", i + 1, e);
-                aiAnalysis = formatSingleLawDocumentAsText(doc) + "\n\nAI解析服务暂时不可用。";
+              //  aiAnalysis = formatSingleLawDocumentAsText(doc) + "\n\nAI解析服务暂时不可用。";
             }
             
             // 添加到结果列表
@@ -126,7 +127,29 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
                 .timestamp(System.currentTimeMillis())
                 .build();
     }
-    
+
+    @Override
+    public ArrayList<Integer> queryKnowledgeId(String userId, KnowledgeQueryRequestVO request) throws Exception {
+        // 2. 从MeiliSearch搜索相关法律文档
+        List<LawDocument> lawDocuments = knowledgeQueryRepository.searchLawDocuments(
+                request.getQuestion(),
+                request.getLawCategoryId(),
+                request.getLimit()
+        );
+
+        if (lawDocuments == null || lawDocuments.isEmpty()) {
+            log.warn("未找到相关法律文档");
+            return new ArrayList<>();
+        }
+       ArrayList<Integer> arrayList= new ArrayList<>();
+        for (int i = 0; i < lawDocuments.size(); i++) {
+            LawDocument doc = lawDocuments.get(i);
+            // 添加到结果列表
+            arrayList.add(doc.getId());
+        }
+        return arrayList;
+    }
+
     /**
      * 为单个法律文档构建AI提示词
      */
@@ -152,16 +175,16 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
         
         return prompt.toString();
     }
-    
-    /**
+    /*
+    *//**
      * 将单个法律文档格式化为文本（备用方案）
      */
-    private String formatSingleLawDocumentAsText(LawDocument doc) {
+   /* private String formatSingleLawDocumentAsText(LawDocument doc) {
         StringBuilder sb = new StringBuilder();
         sb.append("【标题】\n");
         sb.append("《").append(doc.getLawName()).append("》第").append(doc.getArticleNumber()).append("条\n\n");
         sb.append("【原文】\n");
         sb.append(doc.getOriginalText()).append("\n\n");
         return sb.toString();
-    }
+    }*/
 }

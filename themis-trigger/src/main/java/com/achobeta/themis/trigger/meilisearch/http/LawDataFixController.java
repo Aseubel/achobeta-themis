@@ -1,4 +1,4 @@
-package com.achobeta.themis.trigger.http;
+package com.achobeta.themis.trigger.meilisearch.http;
 
 import com.achobeta.themis.common.component.entity.LawDocument;
 import com.achobeta.themis.common.util.IKPreprocessorUtil;
