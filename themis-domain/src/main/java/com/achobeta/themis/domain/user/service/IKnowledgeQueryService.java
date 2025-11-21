@@ -3,6 +3,9 @@ package com.achobeta.themis.domain.user.service;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryResponseVO;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 /**
  * 知识库查询Service接口
  */
@@ -15,4 +18,6 @@ public interface IKnowledgeQueryService {
      * @return 查询响应
      */
     KnowledgeQueryResponseVO queryKnowledge(String userId, KnowledgeQueryRequestVO request) throws Exception;
+
+    ArrayList<Integer> queryKnowledgeId(String userId, KnowledgeQueryRequestVO request) throws Exception;
 }

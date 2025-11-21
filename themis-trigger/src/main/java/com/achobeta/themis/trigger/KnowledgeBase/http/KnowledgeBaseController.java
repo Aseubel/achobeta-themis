@@ -1,34 +1,25 @@
 package com.achobeta.themis.trigger.KnowledgeBase.http;
 
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.util.SecurityUtils;
-import com.achobeta.themis.domain.user.model.entity.ConversationMeta;
 import com.achobeta.themis.domain.user.model.entity.KnowledgeSearchRecord;
-import com.achobeta.themis.domain.user.model.entity.ReviewRequest;
-import com.achobeta.themis.domain.user.model.entity.ReviewResult;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryResponseVO;
 import com.achobeta.themis.domain.user.service.IConversationHistoryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeQueryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeSearchHistoryService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * 知识库查询Controller
@@ -52,7 +43,7 @@ public class KnowledgeBaseController {
     private final IKnowledgeQueryService knowledgeQueryService;
     private final IConversationHistoryService conversationHistoryService;
     private final IKnowledgeSearchHistoryService knowledgeSearchHistoryService;
-    
+
     /**
      * 知识库查询接口（新版）
      * 根据用户问题查询相关法律文档并返回AI解析
@@ -150,15 +141,9 @@ public class KnowledgeBaseController {
         }
     }
     
-    /**
-     * 旧版查询请求DTO（保留兼容性）
-     */
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    static class QueryAns {
-        private String fileName;
-        private String content;
-        private String question;
-    }
+
+    
+
+    
+
 }
