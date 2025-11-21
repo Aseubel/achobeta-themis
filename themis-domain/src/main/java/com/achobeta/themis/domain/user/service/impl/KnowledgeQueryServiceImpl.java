@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -126,7 +127,29 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
                 .timestamp(System.currentTimeMillis())
                 .build();
     }
-    
+
+    @Override
+    public ArrayList<Integer> queryKnowledgeId(String userId, KnowledgeQueryRequestVO request) throws Exception {
+        // 2. 从MeiliSearch搜索相关法律文档
+        List<LawDocument> lawDocuments = knowledgeQueryRepository.searchLawDocuments(
+                request.getQuestion(),
+                request.getLawCategoryId(),
+                request.getLimit()
+        );
+
+        if (lawDocuments == null || lawDocuments.isEmpty()) {
+            log.warn("未找到相关法律文档");
+            return new ArrayList<>();
+        }
+       ArrayList<Integer> arrayList= new ArrayList<>();
+        for (int i = 0; i < lawDocuments.size(); i++) {
+            LawDocument doc = lawDocuments.get(i);
+            // 添加到结果列表
+            arrayList.add(doc.getId());
+        }
+        return arrayList;
+    }
+
     /**
      * 为单个法律文档构建AI提示词
      */
