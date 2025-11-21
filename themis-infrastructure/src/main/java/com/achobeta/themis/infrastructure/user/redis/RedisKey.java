@@ -8,5 +8,9 @@ public class RedisKey {
     public static final String APP = "achobeta-themis:";
 
     public static final String REDIS_SMS_CODE_PREFIX = "sms:code:";
+    
+    // 知识库搜索历史记录相关
+    public static final String KNOWLEDGE_SEARCH_LIST_PREFIX = "knowledge_search:list:";
+    public static final String KNOWLEDGE_SEARCH_DETAIL_PREFIX = "knowledge_search:detail:";
 
 }

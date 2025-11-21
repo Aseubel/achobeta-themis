@@ -1,6 +1,7 @@
 package com.achobeta.themis.trigger.file.http;
 
 import com.achobeta.themis.common.ApiResponse;
+import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;

@@ -57,6 +57,12 @@
             <artifactId>themis-common</artifactId>
             <version>${themis.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.achobeta</groupId>
+            <artifactId>themis-infrastructure</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
