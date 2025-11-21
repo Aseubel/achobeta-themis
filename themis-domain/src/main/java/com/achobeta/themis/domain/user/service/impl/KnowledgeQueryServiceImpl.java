@@ -89,7 +89,7 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
                 log.info("第{}个法条AI解析完成，长度: {}", i + 1, aiAnalysis.length());
             } catch (Exception e) {
                 log.error("第{}个法条AI解析失败", i + 1, e);
-                aiAnalysis = formatSingleLawDocumentAsText(doc) + "\n\nAI解析服务暂时不可用。";
+              //  aiAnalysis = formatSingleLawDocumentAsText(doc) + "\n\nAI解析服务暂时不可用。";
             }
             
             // 添加到结果列表
@@ -152,16 +152,16 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
         
         return prompt.toString();
     }
-    
-    /**
+    /*
+    *//**
      * 将单个法律文档格式化为文本（备用方案）
      */
-    private String formatSingleLawDocumentAsText(LawDocument doc) {
+   /* private String formatSingleLawDocumentAsText(LawDocument doc) {
         StringBuilder sb = new StringBuilder();
         sb.append("【标题】\n");
         sb.append("《").append(doc.getLawName()).append("》第").append(doc.getArticleNumber()).append("条\n\n");
         sb.append("【原文】\n");
         sb.append(doc.getOriginalText()).append("\n\n");
         return sb.toString();
-    }
+    }*/
 }
