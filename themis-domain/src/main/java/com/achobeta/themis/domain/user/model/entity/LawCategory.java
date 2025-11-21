@@ -18,6 +18,9 @@ public class LawCategory {
     
     private String lawName;
     
+    @TableField("category_type")
+    private Integer categoryType;
+    
     @TableField(typeHandler = JacksonTypeHandler.class)
     private List<Integer> relatedRegulationIds;
     

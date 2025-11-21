@@ -45,6 +45,11 @@ public class LawDocument {
     private String issueYear;
     
     /**
+     * 法律类型：1-国家法规，0-地方法规
+     */
+    private Integer categoryType;
+    
+    /**
      * 关联法条ID列表
      */
     private List<Integer> relatedRegulationIds;
@@ -53,4 +58,9 @@ public class LawDocument {
      * 创建时间
      */
     private LocalDateTime createTime;
+    
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 }

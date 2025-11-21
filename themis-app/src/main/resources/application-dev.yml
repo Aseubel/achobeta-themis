@@ -11,7 +11,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://8.134.200.160:13306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
     username: root
-    password: Chenkun123
+    password: 123456
     hikari:
       pool-name: Retail_HikariCP
       minimum-idle: 5 #最小空闲连接数量
@@ -54,7 +54,7 @@ redis:
     config:
       host: 127.0.0.1
       port: 6379
-      password: Chenkun123
+      password: 123456
       pool-size: 10
       min-idle-size: 5
       idle-timeout: 30000
@@ -82,17 +82,3 @@ logging:
   level:
     root: info
   config: classpath:logback-spring.xml
-
-# Langchain4j 配置
-langchain4j:
-  open-ai:
-    chat-model:
-      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-      api-key: ${OPENAI_API_KEY}
-      model: qwen-plus
-
-
-meilisearch:
-  host: http://127.0.0.1:7700
-  api-key: a1N3mPWP8VQCj9B-ID5mpaiwND2h_JycvxCjrwfbUzs
-
