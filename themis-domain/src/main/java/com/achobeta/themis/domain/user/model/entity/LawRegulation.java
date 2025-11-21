@@ -14,7 +14,9 @@ public class LawRegulation {
     private Integer regulationId;
     
     private Integer lawCategoryId;
-    
+
+
+
     private String issueYear;
     
     private Integer articleNumber;
