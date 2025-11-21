@@ -14,11 +14,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static com.achobeta.themis.common.Constant.QUESTION_TITLE_DOCUMENTS;
+
 
 @Service
 @RequiredArgsConstructor
 public class AdjudicatorServiceImpl implements IAdjudicatorService {
-    private final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
+
 
     private final MeiliSearchComponent meiliSearchComponent;
 

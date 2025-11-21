@@ -83,7 +83,7 @@ public class UserServiceImpl implements IUserService{
         log.info("用户登录，手机号：{}", request.getPhone());
         User user = userRepository.findUserByPhone(request.getPhone());
         if (ObjectUtil.isEmpty(user)) {
-            // 注册用户
+            // 注册用户 TODO(后期可优化：限制注册频率)
             String lockKey = "user_sign_up:" + request.getPhone();
             RLock lock = redissonService.getLock(lockKey);
             boolean isLocked = false;

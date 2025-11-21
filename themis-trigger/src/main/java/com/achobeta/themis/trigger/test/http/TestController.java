@@ -4,7 +4,7 @@ import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.domain.user.model.entity.QuestionDTO;
+import com.achobeta.themis.domain.user.model.entity.Questions;
 import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
 import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import jakarta.validation.Valid;
@@ -47,10 +47,10 @@ public class TestController {
     public ApiResponse<String> login() {
         try {
             // 从数据库中查找questions
-            List<QuestionDTO> questionDTOList = testService.queryQuestions();
+            List<Questions> questionDTOList = testService.queryQuestions();
 
             for(int i = 0; i < questionDTOList.size(); i++){
-                QuestionDTO questionDTO = questionDTOList.get(i);
+                Questions questionDTO = questionDTOList.get(i);
                 adjudicatorService.adjudicate(1, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
                 adjudicatorService.adjudicate(2, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
             }

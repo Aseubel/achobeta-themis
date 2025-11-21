@@ -27,7 +27,17 @@ public class Constant {
             "C:\\Windows\\Fonts\\msyh.ttf",
             "C:\\Windows\\Fonts\\simhei.ttf"
     };
-
     public static final String SYSTEM_LOCAL_PATH = "D:\\A\\ruku\\upload";
+
+    // meilisearch相关
+     public static final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
+     public static final String KNOWLEDGE_BASE_QUESTION_DOCUMENTS = "knowledge_base_question_documents";
+
+
+
+     // 个性化的系统提示词 TODO
+
+     // 问题-法律-热点-场景
+     public static final String KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT = "";
 
 }

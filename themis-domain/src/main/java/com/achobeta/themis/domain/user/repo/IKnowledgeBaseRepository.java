@@ -1,0 +1,47 @@
+package com.achobeta.themis.domain.user.repo;
+
+import com.achobeta.themis.domain.user.model.entity.KnowledgeBaseReviewDTO;
+import com.achobeta.themis.domain.user.model.entity.QuestionRegulationRelations;
+import com.achobeta.themis.domain.user.model.entity.Questions;
+
+import java.util.List;
+
+/**
+ * 知识库仓库接口
+ */
+public interface IKnowledgeBaseRepository {
+    /**
+     * 根据问题内容查询问题实体
+     * @param userQuestionContent
+     * @return
+     */
+    Questions findByUserQuestionContent(String userQuestionContent);
+
+    /**
+     * 保存问题
+     * @param questions
+     * @return
+     */
+    Long saveQuestions(Questions questions);
+
+    /**
+     * 保存问题法规关联关系
+     * @param questionRegulationRelations
+     */
+    void saveQuestionRegulationRelations(QuestionRegulationRelations questionRegulationRelations);
+
+    /**
+     * 根据法规ID和问题ID查询知识库审核详情
+     * @param regulationID
+     * @param userQuestionId
+     * @return
+     */
+    KnowledgeBaseReviewDTO findKnowledgeBaseReviewDetailsById(Long regulationID, Long userQuestionId);
+
+    /**
+     * 根据问题ID查询关联的法规ID列表
+     * @param questionId
+     * @return
+     */
+    List<Long> findRegulationIdsByQuestionId(Long questionId);
+}

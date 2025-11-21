@@ -1,6 +1,6 @@
 package com.achobeta.themis.infrastructure.user.repo;
 
-import com.achobeta.themis.domain.user.model.entity.QuestionDTO;
+import com.achobeta.themis.domain.user.model.entity.Questions;
 import com.achobeta.themis.domain.user.repo.ITestRepository;
 import com.achobeta.themis.infrastructure.user.mapper.TestMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,10 +15,10 @@ public class TestRepository implements ITestRepository {
     private final TestMapper testMapper;
 
     @Override
-    public List<QuestionDTO> queryQuestions() {
+    public List<Questions> queryQuestions() {
 
         // 查找id在30 - 150之间的问题
-        return testMapper.selectList(new LambdaQueryWrapper<QuestionDTO>()
-                .between(QuestionDTO::getQuestionId, 30, 150));
+        return testMapper.selectList(new LambdaQueryWrapper<Questions>()
+                .between(Questions::getQuestionId, 30, 150));
     }
 }

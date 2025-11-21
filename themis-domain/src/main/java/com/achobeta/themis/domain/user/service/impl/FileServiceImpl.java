@@ -98,6 +98,14 @@ public class FileServiceImpl implements IFileService {
         return dest.toAbsolutePath().toString();
     }
 
+    /**
+     * 生成文件下载资源
+     * @param isChange
+     * @param conversationId
+     * @param contentType
+     * @param content
+     * @return
+     */
     @Override
     public Resource generateDownloadResource(Boolean isChange, String conversationId, String contentType, String content) {
         // 查询数据库是否存在文件记录
@@ -141,7 +149,6 @@ public class FileServiceImpl implements IFileService {
                     throw new BusinessException("删除本地文件失败", e);
                 }
             }
-            //String fileName = UUID.randomUUID().toString().substring(0,15);
             // 根据 contentType 和 content 生成文件
             ResourceMultipartFile file = null;
             if (contentType.equals("pdf")) {
@@ -188,11 +195,17 @@ public class FileServiceImpl implements IFileService {
         }
     }
 
+    /**
+     * 内容转换 (把“\\n”替换为“\n”)
+     * @param content
+     * @return
+     */
     @Override
     public String contentTransform(String content) {
         return content.replaceAll("\\\\n", "\n");
     }
 
+    @Deprecated
     private UrlResource generateUrlResource(String path) {
         try {
             return new UrlResource(path);
@@ -270,12 +283,6 @@ public class FileServiceImpl implements IFileService {
                 byte[] fontBytes = null;
                 boolean fontCreatedDirectly = false;
                 if (fontBytes == null) {
-//                    String[] systemCandidates = new String[]{
-//                            "C:\\Windows\\Fonts\\simsun.ttc",
-//                            "C:\\Windows\\Fonts\\simsun.ttf",
-//                            "C:\\Windows\\Fonts\\msyh.ttf",
-//                            "C:\\Windows\\Fonts\\simhei.ttf"
-//                    };
                     for (String sysPath : SYSTEM_FONTS) {
                         Path p = Paths.get(sysPath);
                         if (Files.exists(p)) {

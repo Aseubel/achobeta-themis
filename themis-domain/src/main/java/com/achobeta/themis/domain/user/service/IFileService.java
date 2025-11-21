@@ -16,5 +16,10 @@ public interface IFileService {
      */
      Resource generateDownloadResource(Boolean isChange, String conversationId, String contentType, String content);
 
+    /**
+     * 内容转换 (把“\\n”替换为“\n”)
+     * @param content
+     * @return
+     */
     String contentTransform(String content);
 }

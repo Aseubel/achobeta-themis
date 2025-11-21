@@ -24,7 +24,9 @@ public class MeiliSearchComponent implements CommandLineRunner {
     @Autowired
     private Client meiliSearchClient;
 
-    private final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
+    private static final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
+
+    private static final String KNOWLEDGE_BASE_QUESTION_DOCUMENTS = "knowledge_base_question_documents";
 
 
     /**

@@ -76,7 +76,6 @@ public class FileController {
     private final IFileService fileService;
 
 
-
     private static final int MAX_TEXT_LENGTH = 20000;
 
     private static final Map<String, MediaType> CONTENT_TYPE_MAP = new HashMap<>();
