@@ -12,4 +12,8 @@ public class KnowledgeBaseQuestionDocument {
     private String question;
     private String questionSegmented;
     private Integer count;
+    // 所属热点专题
+    private String topic;
+    // 所属常见场景
+    private String caseBackground;
 }

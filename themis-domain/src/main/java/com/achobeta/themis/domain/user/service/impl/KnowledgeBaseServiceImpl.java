@@ -26,6 +26,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
     public List<KnowledgeBaseQueryResponseVO> query(String userQuestion) {
         Long questionId = null;
         // 先查MySQL的问题表
-        Questions question = knowledgeBaseRepository.findByUserQuestionContent(userQuestion);
+        Questions question = knowledgeBaseRepository.findQuestionByUserQuestionContent(userQuestion);
         if (question != null) {
             questionId = question.getId();
         } else {
@@ -83,6 +84,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
                 // List<LawCategories> lawCategories = meiliSearchComponent.fuzzySearchFromLawCategories(KNOWLEDGE_BASE_LAW_CATEGORIES, IKPreprocessorUtil.segment(userQuestion, true), new String[]{"law_name"}, 1, LawCategories.class);
                 // TODO 将关联的法条id和原文一起写到提示词中 ,人ai返回下方json
                 String prompt = buildAdjudicatePrompt(userQuestion, KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT);
+                // TODO 系统提示词要改
                 String response = adjudicatorAgentService.chat(UUID.randomUUID().toString(), prompt);
                 // 异步插入数据
                 threadPoolTaskExecutor.execute(() -> {
@@ -98,6 +100,34 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
             KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = knowledgeBaseRepository.findKnowledgeBaseReviewDetailsById(regulationId, questionIdForSearch);
                         return knowledgeBaseBaseReviewToKnowledgeBaseQueryResponseVO(knowledgeBaseReviewDTO);
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 查找topic
+     * @return 所有topic列表
+     */
+    @Override
+    public List<String> queryTopics() {
+        List<KnowledgeBaseQuestionDocument> documents = meiliSearchComponent.searchFilteredAndSortedDocuments(KNOWLEDGE_BASE_QUESTION_DOCUMENTS,
+                null,
+                new String[]{"topic"},
+                10,
+                KnowledgeBaseQuestionDocument.class);
+        return documents.stream().map(KnowledgeBaseQuestionDocument::getTopic).collect(Collectors.toList());
+    }
+
+    /**
+     * 查询常见场景
+     * @return 所有常见场景列表
+     */
+    @Override
+    public List<String> queryCaseBackgrounds() {
+        List<KnowledgeBaseQuestionDocument> documents = meiliSearchComponent.searchFilteredAndSortedDocuments(KNOWLEDGE_BASE_QUESTION_DOCUMENTS,
+                null,
+                new String[]{"case_background"},
+                10,
+                KnowledgeBaseQuestionDocument.class);
+        return documents.stream().map(KnowledgeBaseQuestionDocument::getCaseBackground).collect(Collectors.toList());
     }
 
     /**
@@ -274,6 +304,8 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
                 .questionId(questionId)
                 .question(userQuestion)
                 .questionSegmented(questionSegmented)
+                .topic(jsonObject.getString("topic"))
+                .caseBackground(jsonObject.getString("caseBackground"))
                 .count(1)
                 .build();
     }

@@ -28,7 +28,7 @@ public class KnowledgeBaseController {
     /**
      * 查询知识库问题
      * @param question
-     * @return
+     * @return 知识库问题响应VO列表
      */
     @GetMapping("/query")
     public ApiResponse<List<KnowledgeBaseQueryResponseVO>> queryKnowledgeBase(@RequestParam("question") String question) {
@@ -39,6 +39,37 @@ public class KnowledgeBaseController {
             throw e;
         } catch (Exception e) {
             log.error("知识库查询失败", e);
+            throw e;
+        }
+    }
+
+    /**
+     * 查找topic
+     * @return 所有topic列表
+     */
+    @GetMapping("/topic")
+    public ApiResponse<List<String>> queryTopics() {
+        log.info("queryTopics");
+        try {
+            return ApiResponse.success(knowledgeBaseService.queryTopics());
+        } catch (Exception e) {
+            log.error("查询topic失败", e);
+            throw e;
+        }
+    }
+
+
+    /**
+     * 查询常见场景
+     * @return 所有常见场景列表
+     */
+     @GetMapping("/case")
+    public ApiResponse<List<String>> queryCaseBackgrounds() {
+        log.info("queryCaseBackgrounds");
+        try {
+            return ApiResponse.success(knowledgeBaseService.queryCaseBackgrounds());
+        } catch (Exception e) {
+            log.error("查询常见场景失败", e);
             throw e;
         }
     }

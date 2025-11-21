@@ -238,7 +238,7 @@ public class MeiliSearchComponent implements CommandLineRunner {
      * 配置索引字段为可搜索、可过滤、可排序
      * @throws IOException 如果初始化过程中发生IO错误
      */
-    public void initQuestionRankingIndex() throws IOException, InterruptedException {
+    private void initQuestionRankingIndex() throws IOException, InterruptedException {
         try {
             if (isIndexExists(QUESTION_TITLE_DOCUMENTS)) {
                 log.info("索引 {} 已存在，无需重复创建", QUESTION_TITLE_DOCUMENTS);
@@ -291,6 +291,54 @@ public class MeiliSearchComponent implements CommandLineRunner {
         catch (MeilisearchException e) {
             log.error("创建索引失败", e);
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 初始化知识库问题索引
+     * @throws Exception
+     */
+    private void initKnowledgeBaseQuestionIndex() throws Exception {
+        try {
+            if (isIndexExists(KNOWLEDGE_BASE_QUESTION_DOCUMENTS)) {
+                log.info("索引 {} 已存在，无需重复创建", KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+                // 删除索引
+                //meiliSearchClient.deleteIndex(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+                //Thread.sleep(500);
+                return;
+            }
+            Index index = meiliSearchClient.index(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+            Settings settings = new Settings();
+            settings.setSearchableAttributes(new String[]{ "questionSegmented" });
+            settings.setFilterableAttributes(new String[]{ "count" });
+            settings.setSortableAttributes(new String[]{ "count" });
+
+            TypoTolerance typoTolerance = new TypoTolerance();
+            HashMap<String, Integer> minWordSizeTypos = new HashMap<String, Integer>() {{
+                put("oneTypo", 3);
+                put("twoTypos", 6);
+            }};
+            typoTolerance.setMinWordSizeForTypos(minWordSizeTypos);
+
+            TaskInfo taskInfo = index.updateSettings(settings);
+            meiliSearchClient.waitForTask(taskInfo.getTaskUid());
+
+            log.info("索引 {} 创建并配置成功", KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+
+            //创建测试文档
+            Map<String, Object> testDoc = new HashMap<>();
+            testDoc.put("id", "001");
+            testDoc.put("question", "对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？");
+            testDoc.put("questionSegmented", IKPreprocessorUtil.segment("对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？", true));
+            testDoc.put("topic", "合同权益");
+            testDoc.put("caseBackground", "企业与劳动者签订劳动合同");
+            testDoc.put("count", 1);
+            testDoc.put("create_time", LocalDateTime.now());
+            index.addDocuments(JSON.toJSONString(Collections.singletonList(testDoc)));
+            log.info("已插入测试文档，确保 questionSegmented 字段可搜索");
+        }
+        catch (MeilisearchException e) {
             throw new RuntimeException(e);
         }
     }
@@ -380,5 +428,6 @@ public class MeiliSearchComponent implements CommandLineRunner {
     public void run(String... args) throws Exception {
         initQuestionRankingIndex();
         initLawIndex();
+        initKnowledgeBaseQuestionIndex();
     }
 }

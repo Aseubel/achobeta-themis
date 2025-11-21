@@ -15,7 +15,7 @@ public interface IKnowledgeBaseRepository {
      * @param userQuestionContent
      * @return
      */
-    Questions findByUserQuestionContent(String userQuestionContent);
+    Questions findQuestionByUserQuestionContent(String userQuestionContent);
 
     /**
      * 保存问题

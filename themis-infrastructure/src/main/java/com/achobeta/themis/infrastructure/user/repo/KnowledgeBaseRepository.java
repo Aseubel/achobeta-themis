@@ -25,7 +25,7 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
      * @return
      */
     @Override
-    public Questions findByUserQuestionContent(String userQuestionContent) {
+    public Questions findQuestionByUserQuestionContent(String userQuestionContent) {
         return questionMapper.selectOne(new LambdaQueryWrapper<Questions>()
                 .like(Questions::getQuestionContent, userQuestionContent));
     }

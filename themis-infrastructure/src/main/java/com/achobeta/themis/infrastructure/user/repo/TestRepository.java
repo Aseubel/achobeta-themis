@@ -19,6 +19,6 @@ public class TestRepository implements ITestRepository {
 
         // 查找id在30 - 150之间的问题
         return testMapper.selectList(new LambdaQueryWrapper<Questions>()
-                .between(Questions::getQuestionId, 30, 150));
+                .between(Questions::getId, 30, 150));
     }
 }
