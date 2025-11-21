@@ -20,27 +20,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.achobeta.themis.common.Constant.KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT;
-import static com.achobeta.themis.common.Constant.KNOWLEDGE_BASE_QUESTION_DOCUMENTS;
+import static com.achobeta.themis.common.Constant.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
     private final IRedisService redissonService;
-
     private final MeiliSearchComponent meiliSearchComponent;
-
     private final IKnowledgeBaseRepository knowledgeBaseRepository;
 
     @Autowired
@@ -60,6 +58,12 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<KnowledgeBaseQueryResponseVO> query(String userQuestion) {
+        Long currentUserId = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
+        threadPoolTaskExecutor.execute(() -> {
+            knowledgeBaseRepository.saveSearchHistory(userQuestion, currentUserId);
+            redissonService.addToList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, userQuestion);
+            redissonService.setListExpired(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, TimeUnit.HOURS.toMillis(3));
+        });
         Long questionId = null;
         // 先查MySQL的问题表
         Questions question = knowledgeBaseRepository.findQuestionByUserQuestionContent(userQuestion);
@@ -128,6 +132,22 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
                 10,
                 KnowledgeBaseQuestionDocument.class);
         return documents.stream().map(KnowledgeBaseQuestionDocument::getCaseBackground).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> querySearchHistory() {
+        Long currentUserId = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
+        // 从Redis中获取搜索历史
+        List<String> searchHistoryList = redissonService.getList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId);
+        if (searchHistoryList == null) {
+            // 在数据库里查10条
+            searchHistoryList = knowledgeBaseRepository.findSearchHistoryByUserId(currentUserId, 10);
+            for (String searchHistory : searchHistoryList) {
+                redissonService.addToList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, searchHistory);
+            }
+            redissonService.setListExpired(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, 1000 * 60 * 5);
+        }
+        return new ArrayList<>(searchHistoryList);
     }
 
     /**

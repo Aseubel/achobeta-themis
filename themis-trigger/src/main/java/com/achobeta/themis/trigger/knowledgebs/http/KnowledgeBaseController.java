@@ -26,10 +26,11 @@ public class KnowledgeBaseController {
     private final IKnowledgeBase knowledgeBaseService;
 
     /**
-     * 查询知识库问题
+     * 搜索问题
      * @param question
      * @return 知识库问题响应VO列表
      */
+    @LoginRequired
     @GetMapping("/query")
     public ApiResponse<List<KnowledgeBaseQueryResponseVO>> queryKnowledgeBase(@RequestParam("question") String question) {
         log.info("queryKnowledgeBase, question: {}", question);
@@ -70,6 +71,22 @@ public class KnowledgeBaseController {
             return ApiResponse.success(knowledgeBaseService.queryCaseBackgrounds());
         } catch (Exception e) {
             log.error("查询常见场景失败", e);
+            throw e;
+        }
+    }
+
+    /**
+     * 查找用户搜索历史记录
+     * @return 用户搜索历史记录列表
+     */
+    @LoginRequired
+    @GetMapping("/history")
+    public ApiResponse<List<String>> querySearchHistory() {
+        log.info("querySearchHistory");
+        try {
+            return ApiResponse.success(knowledgeBaseService.querySearchHistory());
+        } catch (Exception e) {
+            log.error("查询用户搜索历史记录失败", e);
             throw e;
         }
     }

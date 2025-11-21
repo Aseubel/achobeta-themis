@@ -173,6 +173,24 @@ public interface IRedisService {
      */
     void addToList(String key, String value);
 
+     /**
+     * 设置列表的过期时间
+     *
+     * @param key     键
+     * @param expired 过期时间
+     */
+    void setListExpired(String key, long expired);
+
+    /**
+     * 获得整个list
+     *
+     * @param key 键
+     * @return 值
+     */
+    List<String> getList(String key);
+
+
+
     /**
      * 获取列表中指定索引的值
      *

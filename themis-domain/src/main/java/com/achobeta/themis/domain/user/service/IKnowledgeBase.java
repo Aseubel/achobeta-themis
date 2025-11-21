@@ -23,4 +23,6 @@ public interface IKnowledgeBase {
       * @return 所有常见场景列表
       */
     List<String> queryCaseBackgrounds();
+
+    List<String> querySearchHistory();
 }

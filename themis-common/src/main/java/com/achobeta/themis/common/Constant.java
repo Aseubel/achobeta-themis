@@ -40,4 +40,7 @@ public class Constant {
      // 问题-法律-热点-场景
      public static final String KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT = "";
 
+     // 知识库搜索历史记录key
+     public static final String KNOWLEDGE_BASE_SEARCH_HISTORY_KEY = "knowledge_base_search_history:";
+
 }

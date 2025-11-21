@@ -18,6 +18,9 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
     private final LawRegulationsMapper lawRegulationsMapper;
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final LawCategoriesMapper lawCategoriesMapper;
+    private final SearchHistoryMapper searchHistoryMapper;
+
+
 
     /**
      * 根据用户问题内容查询问题
@@ -90,6 +93,27 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
                 .eq(QuestionRegulationRelations::getQuestionId, questionId))
                 .stream()
                 .map(QuestionRegulationRelations::getRegulationId)
+                .toList();
+    }
+
+    @Override
+    public void saveSearchHistory(String userQuestion, Long userId) {
+        searchHistoryMapper.insert(KnowledgeBaseSearchHistory.builder()
+                .userId(userId)
+                .userQuestion(userQuestion)
+                .build()
+        );
+
+    }
+
+    @Override
+    public List<String> findSearchHistoryByUserId(Long currentUserId, int limit) {
+        return searchHistoryMapper.selectList(new LambdaQueryWrapper<KnowledgeBaseSearchHistory>()
+                .eq(KnowledgeBaseSearchHistory::getUserId, currentUserId)
+                .orderByDesc(KnowledgeBaseSearchHistory::getCreateTime)
+                .last("limit " + limit))
+                .stream()
+                .map(KnowledgeBaseSearchHistory::getUserQuestion)
                 .toList();
     }
 }
