@@ -1,4 +1,4 @@
-package com.achobeta.themis.common.vo;
+package com.achobeta.themis.domain.user.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthResponseVO {
+        private Long id;
         private String userId;
         private String username;
         private String accessToken;

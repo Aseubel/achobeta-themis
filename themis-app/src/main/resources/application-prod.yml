@@ -9,7 +9,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/achobeta_themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
+    url: jdbc:mysql://mysql:3306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
     username: root
     password: 123456
     hikari:
@@ -48,7 +48,7 @@ thread:
 
 #Redis 配置
 redis:
-  key-prefix: "weave-plus:"
+  key-prefix: "achobeta-themis:"
   time-to-live: 86400000 # 1天 (毫秒)
   sdk:
     config:
@@ -62,6 +62,7 @@ redis:
       retry-interval: 1000
       ping-interval: 60000
       keep-alive: true
+      password: ${REDIS_PASSWORD}
 
 # JWT配置
 jwt:
@@ -71,13 +72,27 @@ jwt:
 
 # 阿里云短信配置
 aliyun:
-  access-key-id: ${aliyun-access-key-id}
-  access-key-secret: ${aliyun-access-key-secret}
-  template-code: ${aliyun-template-code}
-  sign-name: ${aliyun-sign-name}
+  sms:
+    access-key-id: ${aliyun-access-key-id}
+    access-key-secret: ${aliyun-access-key-secret}
+    template-code: ${aliyun-template-code}
+    sign-name: ${aliyun-sign-name}
 
 # 日志
 logging:
   level:
     root: info
   config: classpath:logback-spring.xml
+
+# Langchain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: ${OPENAI_API_KEY}
+      model: qwen-plus
+
+# MeiliSearch 配置
+meilisearch:
+  host: http://localhost:7700
+  api-key: ${MEILISEARCH_API_KEY}

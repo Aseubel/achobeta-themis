@@ -3,15 +3,14 @@ package com.achobeta.themis.trigger.user.http;
 import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
+import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.common.vo.ForgetPasswdRequestVO;
+import com.achobeta.themis.domain.user.model.vo.*;
 import com.achobeta.themis.domain.user.model.UserModel;
-import com.achobeta.themis.domain.user.model.entity.User;
 import com.achobeta.themis.domain.user.service.IUserService;
-import com.achobeta.themis.common.vo.AuthResponseVO;
-import com.achobeta.themis.common.vo.LoginRequestVO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +32,7 @@ public class UserController implements UserClient {
     /**
      * 获取当前用户信息
      */
+    @LoginRequired
     @GetMapping("/info")
     public ApiResponse<UserInfoResponse> getUserInfo(
             @RequestParam("userId") Long userId) {
@@ -62,6 +62,44 @@ public class UserController implements UserClient {
             throw e;
         } catch (Exception e) {
             log.error("用户登录失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 登出用户
+     * @param refreshToken
+     * @return
+     */
+    @LoginRequired
+    @PostMapping("/logout")
+    public ApiResponse<String> logout(@NotBlank(message = "刷新令牌不能为空") @RequestParam("refreshToken") String refreshToken) {
+        try {
+            userService.logout(refreshToken);
+            return ApiResponse.success("登出成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("用户登出失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 登出所有设备
+     * @param userId
+     * @return
+     */
+    @LoginRequired
+    @PostMapping("/logout-all")
+    public ApiResponse<String> logoutAll(@NotNull(message = "用户id不能为空") @RequestParam("userId") Long userId) {
+        try {
+            userService.logoutAll(userId);
+            return ApiResponse.success("批量注销成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("批量注销用户所有登录会话失败", e);
             return ApiResponse.error(e.getMessage());
         }
     }
@@ -121,6 +159,43 @@ public class UserController implements UserClient {
     }
 
     /**
+     * 修改用户密码
+     * @param request
+     * @return
+     */
+     @LoginRequired
+     @PostMapping("/change-password")
+     public ApiResponse<String> changePassword(@Valid @RequestBody ChangePasswordRequestVO request) {
+        try {
+            userService.changePassword(request);
+            return ApiResponse.success("密码修改成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("密码修改失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 修改用户名
+     * @param request
+     */
+     @LoginRequired
+     @PostMapping("/change-username")
+     public ApiResponse<String> changeUsername(@Valid @RequestBody ChangeUsernameRequestVO request) {
+        try {
+            userService.changeUsername(request);
+            return ApiResponse.success("用户名修改成功");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("用户名修改失败", e);
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
      * 转换用户模型为用户信息响应
      * @param model
      * @return
@@ -133,4 +208,5 @@ public class UserController implements UserClient {
                 .build();
         return userInfo;
     }
+
 }

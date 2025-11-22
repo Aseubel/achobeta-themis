@@ -5,9 +5,12 @@ import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,10 +52,11 @@ public class JwtUtil {
     /**
      * 生成刷新令牌
      */
-    public String generateRefreshToken(Long userId, String username) {
+    public String generateRefreshToken(Long userId, String username, String clientId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
+        claims.put("clientId", clientId);
         claims.put("tokenType", "refresh");
         return createToken(claims, refreshTokenExpiration);
     }
@@ -94,6 +98,16 @@ public class JwtUtil {
     public String getTokenTypeFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? claims.get("tokenType").toString() : null;
+    }
+
+    /**
+     * 从token中获取客户端ID
+     * @param refreshToken
+     * @return
+     */
+    public String getClientIdFromToken(String refreshToken) {
+        Claims claims = getClaimsFromToken(refreshToken);
+        return claims != null ? claims.get("clientId").toString() : null;
     }
 
     /**
@@ -167,5 +181,20 @@ public class JwtUtil {
     public Date getExpirationDateFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? claims.getExpiration() : null;
+    }
+
+    /**
+     * 从访问令牌中提取用户信息并保存到Spring Security上下文
+     * @param accessToken
+     */
+    public void saveUserInfoToSecurityContext(String accessToken) {
+        Long id = getUserIdFromToken(accessToken);
+        String userId = String.format("%06d", id);
+        Map<String, Object> details = new HashMap<>();
+        details.put("userId", userId);
+        details.put("id", id);
+        if (id != null) {
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(details, null, Collections.emptyList()));
+        }
     }
 }
