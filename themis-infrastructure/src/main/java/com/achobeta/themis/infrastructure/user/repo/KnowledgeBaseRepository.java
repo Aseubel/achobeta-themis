@@ -62,19 +62,19 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
     @Override
     public KnowledgeBaseReviewDTO findKnowledgeBaseReviewDetailsById(Long regulationID, Long userQuestionId) {
         KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = new KnowledgeBaseReviewDTO();
-        LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
-                .eq(LawCategories::getLawId, regulationID));
         LawRegulations lawRegulations = lawRegulationsMapper.selectOne(new LambdaQueryWrapper<LawRegulations>()
                 .eq(LawRegulations::getRegulationId, regulationID));
+        LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
+                .eq(LawCategories::getLawId, lawRegulations.getLawCategoryId()));
         QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
                 .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)
                 .eq(QuestionRegulationRelations::getRegulationId, regulationID));
         knowledgeBaseReviewDTO.setLawName(lawCategories.getLawName())
                 .setOriginalText(lawRegulations.getOriginalText())
                 .setArticleNumber(lawRegulations.getArticleNumber())
-                .setTotalArticles(lawCategories.getRelatedRegulationIds().split(",").length)
+                .setTotalArticles(lawCategories.getRelatedRegulationIds().size())
                 .setIssueYear(lawRegulations.getIssueYear());
-        if (userQuestionId == null) {
+        if (userQuestionId != null) {
             knowledgeBaseReviewDTO.setAiTranslation(questionRegulationRelations.getAiTranslation())
                     .setRelevantCases(questionRegulationRelations.getRelevantCases())
                     .setRelevantQuestions(questionRegulationRelations.getRelevantQuestions());
@@ -111,7 +111,7 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
         return searchHistoryMapper.selectList(new LambdaQueryWrapper<KnowledgeBaseSearchHistory>()
                 .eq(KnowledgeBaseSearchHistory::getUserId, currentUserId)
                 .orderByDesc(KnowledgeBaseSearchHistory::getCreateTime)
-                .last("limit " + limit))
+                .apply("LIMIT {0}", limit))
                 .stream()
                 .map(KnowledgeBaseSearchHistory::getUserQuestion)
                 .toList();

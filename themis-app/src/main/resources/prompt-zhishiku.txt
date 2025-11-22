@@ -2,6 +2,7 @@
 
 【重要规则】
 1. 你必须只输出 JSON，不得包含任何额外解释文字。
+1.1 regulationList 必须为数组，包含所有符合条件的法律条款（不超过5条）。
 2. regulationID 必须为整数。
 3. regulationContent 仅用于生成 aiTranslation，不可直接粘贴到输出中。
 4. aiTranslation：你必须结合法条原文与 userQuestion，进行贴合用户问题场景的简明释义（不超过 80 字）。不得只做概述，必须解释该法条对用户问题的意义或作用。

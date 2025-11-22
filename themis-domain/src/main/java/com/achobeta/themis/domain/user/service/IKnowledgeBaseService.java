@@ -25,4 +25,6 @@ public interface IKnowledgeBaseService {
     List<String> queryCaseBackgrounds();
 
     List<String> querySearchHistory();
+
+    void insertKnowledgeBaseData(String userQuestion, String response);
 }

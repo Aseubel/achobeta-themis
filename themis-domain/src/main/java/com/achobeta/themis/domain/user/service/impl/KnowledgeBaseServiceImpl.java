@@ -1,7 +1,6 @@
 package com.achobeta.themis.domain.user.service.impl;
 
 import cn.hutool.json.JSONUtil;
-import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.KnowledgeBaseQuestionDocument;
@@ -20,10 +19,10 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +52,6 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
     @Qualifier("Knowledge")
     private IAiKnowledgeService knowledgeAgentService;
 
-
     /**
      * 查询知识库问题
      * @param userQuestion 用户问题
@@ -77,7 +75,8 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
             // 无结果时，meilisearch查问题
             List<KnowledgeBaseQuestionDocument> questionDocuments = null;
             try {
-                questionDocuments = meiliSearchComponent.fuzzySearchFromQuestionTitle(KNOWLEDGE_BASE_QUESTION_DOCUMENTS, IKPreprocessorUtil.segment(userQuestion, true), new String[]{"question_segmented"}, 1, KnowledgeBaseQuestionDocument.class);
+                String str = IKPreprocessorUtil.stopWordSegment(userQuestion, true);
+                questionDocuments = meiliSearchComponent.strictSearchForKnowledgeBaseQuestion(str, 1, 2);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -96,13 +95,16 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
                 }
                 if (knowledgeIdAndContent.isEmpty()) {
                     log.warn("未找到相关法律文档");
-                    throw new RuntimeException("未找到相关法律");
+                    throw new BusinessException("未找到相关法律");
                 }
                 String prompt = buildKnowledgePrompt(userQuestion, knowledgeIdAndContent);
                 String response = knowledgeAgentService.chat(UUID.randomUUID().toString(), prompt);
+                log.warn("ai返回结果: {}", response);
                 // 异步插入数据
+                // 获得自己的代理对象
+                KnowledgeBaseServiceImpl knowledgeBaseServiceProxy = (KnowledgeBaseServiceImpl) AopContext.currentProxy();
                 threadPoolTaskExecutor.execute(() -> {
-                    insertKnowledgeBaseData(userQuestion, response);
+                    knowledgeBaseServiceProxy.insertKnowledgeBaseData(userQuestion, response);
                 });
                 // 根据ai的信息封装返回结果
                 return parseJsonAndSearchDataToKnowledgeBaseQueryResponseVO(response, userQuestion);
@@ -124,7 +126,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
     public List<String> queryTopics() {
         List<KnowledgeBaseQuestionDocument> documents = meiliSearchComponent.searchFilteredAndSortedDocuments(KNOWLEDGE_BASE_QUESTION_DOCUMENTS,
                 null,
-                new String[]{"topic"},
+                new String[]{"count:desc"},
                 10,
                 KnowledgeBaseQuestionDocument.class);
         return documents.stream().map(KnowledgeBaseQuestionDocument::getTopic).collect(Collectors.toList());
@@ -138,7 +140,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
     public List<String> queryCaseBackgrounds() {
         List<KnowledgeBaseQuestionDocument> documents = meiliSearchComponent.searchFilteredAndSortedDocuments(KNOWLEDGE_BASE_QUESTION_DOCUMENTS,
                 null,
-                new String[]{"case_background"},
+                new String[]{"count:desc"},
                 10,
                 KnowledgeBaseQuestionDocument.class);
         return documents.stream().map(KnowledgeBaseQuestionDocument::getCaseBackground).collect(Collectors.toList());
@@ -149,6 +151,9 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
         Long currentUserId = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
         // 从Redis中获取搜索历史
         List<String> searchHistoryList = redissonService.getList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId);
+        if (searchHistoryList.size() > 10){
+            searchHistoryList = searchHistoryList.subList(searchHistoryList.size() - 10, searchHistoryList.size()).reversed();
+        }
         if (searchHistoryList == null) {
             // 在数据库里查10条
             searchHistoryList = knowledgeBaseRepository.findSearchHistoryByUserId(currentUserId, 10);
@@ -166,7 +171,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
      * @param response
      */
     @Transactional(rollbackFor = Exception.class)
-    protected void insertKnowledgeBaseData(String userQuestion, String response) {
+    public void insertKnowledgeBaseData(String userQuestion, String response) {
         // 解析数据到Questions表
         Questions questions = parseJsonToQuestions(response, userQuestion);
         Long questionId = knowledgeBaseRepository.saveQuestions(questions);
@@ -231,6 +236,8 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
      * @return
      */
     private KnowledgeBaseQueryResponseVO knowledgeBaseBaseReviewToKnowledgeBaseQueryResponseVO(KnowledgeBaseReviewDTO knowledgeBaseReviewDTO) {
+        String relevantCases = knowledgeBaseReviewDTO.getRelevantCases();
+        String relevantQuestions = knowledgeBaseReviewDTO.getRelevantQuestions();
         return KnowledgeBaseQueryResponseVO.builder()
                 .lawName(knowledgeBaseReviewDTO.getLawName())
                 .regulationContent(knowledgeBaseReviewDTO.getOriginalText())
@@ -327,7 +334,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
         JSONObject jsonObject = JSONObject.parseObject(JSONStr);
         String questionSegmented = null;
         try {
-            questionSegmented = IKPreprocessorUtil.segment(userQuestion, true);
+            questionSegmented = IKPreprocessorUtil.stopWordSegment(userQuestion, true);
         } catch (Exception e) {
             log.error("问题{}分词失败", questionId, e);
             throw new RuntimeException(e);

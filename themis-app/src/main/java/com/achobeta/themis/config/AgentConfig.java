@@ -68,6 +68,7 @@ public class AgentConfig {
                 .build();
     }
 
+
     @Bean("Knowledge")
     public IAiKnowledgeService KnowledgeService() throws IOException {
         ClassPathResource resource = new ClassPathResource("prompt-zhishiku.txt");

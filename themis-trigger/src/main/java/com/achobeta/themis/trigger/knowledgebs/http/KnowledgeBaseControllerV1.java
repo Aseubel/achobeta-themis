@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/knowledgebs")
 @RequiredArgsConstructor
-public class KnowledgeBaseController {
+public class KnowledgeBaseControllerV1 {
 
     private final IKnowledgeBaseService knowledgeBaseService;
 
@@ -58,7 +58,6 @@ public class KnowledgeBaseController {
             throw e;
         }
     }
-
 
     /**
      * 查询常见场景
