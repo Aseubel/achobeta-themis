@@ -4,7 +4,7 @@ import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
-import com.achobeta.themis.domain.user.service.IKnowledgeBase;
+import com.achobeta.themis.domain.user.service.IKnowledgeBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KnowledgeBaseController {
 
-    private final IKnowledgeBase knowledgeBaseService;
+    private final IKnowledgeBaseService knowledgeBaseService;
 
     /**
      * 搜索问题
@@ -90,7 +90,4 @@ public class KnowledgeBaseController {
             throw e;
         }
     }
-
-
-
 }

@@ -2,6 +2,7 @@ package com.achobeta.themis.domain.user.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
+import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.KnowledgeBaseQuestionDocument;
 import com.achobeta.themis.common.exception.BusinessException;
@@ -11,8 +12,10 @@ import com.achobeta.themis.domain.user.model.entity.KnowledgeBaseReviewDTO;
 import com.achobeta.themis.domain.user.model.entity.QuestionRegulationRelations;
 import com.achobeta.themis.domain.user.model.entity.Questions;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
+import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
 import com.achobeta.themis.domain.user.repo.IKnowledgeBaseRepository;
-import com.achobeta.themis.domain.user.service.IKnowledgeBase;
+import com.achobeta.themis.domain.user.service.IKnowledgeBaseService;
+import com.achobeta.themis.domain.user.service.IKnowledgeQueryService;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.RequiredArgsConstructor;
@@ -36,18 +39,19 @@ import static com.achobeta.themis.common.Constant.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
+public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
     private final IRedisService redissonService;
     private final MeiliSearchComponent meiliSearchComponent;
     private final IKnowledgeBaseRepository knowledgeBaseRepository;
+    private final IKnowledgeQueryService knowledgeQueryService;
 
     @Autowired
     @Qualifier("threadPoolExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
-    @Qualifier("adjudicator")
-    private IAiAdjudicatorService adjudicatorAgentService;
+    @Qualifier("Knowledge")
+    private IAiKnowledgeService knowledgeAgentService;
 
 
     /**
@@ -83,13 +87,19 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
                 meiliSearchComponent.updateCount(KNOWLEDGE_BASE_QUESTION_DOCUMENTS, questionDocument.getId(), questionDocument.getCount() + 1);
                 questionId = questionDocument.getQuestionId();
             } else {
-                // 无结果时，询问ai并插入数据 #TODO
-                // TODO meilisearch 查询相关连的法条原文及其id （控制数量）
-                // List<LawCategories> lawCategories = meiliSearchComponent.fuzzySearchFromLawCategories(KNOWLEDGE_BASE_LAW_CATEGORIES, IKPreprocessorUtil.segment(userQuestion, true), new String[]{"law_name"}, 1, LawCategories.class);
-                // TODO 将关联的法条id和原文一起写到提示词中 ,人ai返回下方json
-                String prompt = buildAdjudicatePrompt(userQuestion, KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT);
-                // TODO 系统提示词要改
-                String response = adjudicatorAgentService.chat(UUID.randomUUID().toString(), prompt);
+                Map<Long, String> knowledgeIdAndContent = null;
+                try {
+                    knowledgeIdAndContent = knowledgeQueryService.queryKnowledgeId(KnowledgeQueryRequestVO.builder().question(userQuestion).build());
+                } catch (Exception e) {
+                    log.error("查询知识库问题失败", e);
+                    throw new RuntimeException(e);
+                }
+                if (knowledgeIdAndContent.isEmpty()) {
+                    log.warn("未找到相关法律文档");
+                    throw new RuntimeException("未找到相关法律");
+                }
+                String prompt = buildKnowledgePrompt(userQuestion, knowledgeIdAndContent);
+                String response = knowledgeAgentService.chat(UUID.randomUUID().toString(), prompt);
                 // 异步插入数据
                 threadPoolTaskExecutor.execute(() -> {
                     insertKnowledgeBaseData(userQuestion, response);
@@ -278,11 +288,14 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBase {
     /**
      * 构建审核提示
      * @param userQuestion
-     * @param systemPrompt
-     * @return
+     * @param knowledgeIdAndContent 法律id到法律内容的映射
+     * @return 知识库问答提示
      */
-    private String buildAdjudicatePrompt(String userQuestion, String systemPrompt) {
-        return String.format("%s\n用户问题：%s", systemPrompt, userQuestion);
+    private String buildKnowledgePrompt(String userQuestion, Map<Long, String> knowledgeIdAndContent) {
+        String regulationIdAndContent = knowledgeIdAndContent.entrySet().stream()
+                .map(entry -> String.format("[regulationID: %d; regulationContent:%s]", entry.getKey(), entry.getValue()))
+                .collect(Collectors.joining("、"));
+        return String.format("; 其中用户问题为：%s; 与问题相关的法律法条内容为：%s", userQuestion, regulationIdAndContent);
     }
 
     /**

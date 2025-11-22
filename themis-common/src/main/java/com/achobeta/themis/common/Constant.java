@@ -38,9 +38,51 @@ public class Constant {
      // 个性化的系统提示词 TODO
 
      // 问题-法律-热点-场景
-     public static final String KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT = "";
+     public static final String KNOWLEDGE_BASE_INSERT_SYSTEM_PROMPT = "你是一个信息填充机器人，你的任务是根据userQuestion和与问题相关的法律文件列表的regulationID，regulationContent，填充出JSON格式数据。" +
+             "并严格按照JSON格式输出。（regulationID为整数，regulationContent为字符串，aiTranslation为字符串，relevantCases为数组，relevantQuestions为数组）" +
+             "{\n" +
+             "     \"topic\": \"\",\n" +
+             "     \"caseBackground\": \"\",\n" +
+             "     \"regulationList\": [\n" +
+             "         {\n" +
+             "             \"regulationID\": ,\n" +
+             "             \"aiTranslation\": \"\",\n" +
+             "             \"relevantCases\": [\n" +
+             "                 {\n" +
+             "                     \"caseContent\": \"\",\n" +
+             "                     \"caseLink\": \"\"\n" +
+             "                 }\n" +
+             "             ],\n" +
+             "             \"relevantQuestions\": [\n" +
+             "                 \"\"\n" +
+             "             ]\n" +
+             "         }\n" +
+             "     ]\n" +
+             "}";
 
-     // 知识库搜索历史记录key
+    /**
+     * {
+     *      "topic": "",
+     *      "caseBackground": "",
+     *      "regulationList": [
+     *          {
+     *              "regulationID": ,
+     *              "aiTranslation": "",
+     *              "relevantCases": [
+     *                  {
+     *                      "caseContent": "",
+     *                      "caseLink": ""
+     *                  }
+     *              ],
+     *              "relevantQuestions": [
+     *                  ""
+     *              ]
+     *          }
+     *      ]
+     * }
+     */
+
+    // 知识库搜索历史记录key
      public static final String KNOWLEDGE_BASE_SEARCH_HISTORY_KEY = "knowledge_base_search_history:";
 
 }

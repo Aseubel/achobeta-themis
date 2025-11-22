@@ -17,5 +17,11 @@ import reactor.core.publisher.Flux;
  *
  * */
 public interface IAiKnowledgeService {
-    Flux<String> chat(@MemoryId String memoryId, @UserMessage String message);
+     /**
+      * 知识库问答
+      * @param memoryId 内存ID
+      * @param message 用户消息
+      * @return 知识库问答响应
+      */
+     String chat(@MemoryId String memoryId, @UserMessage String message);
 }
