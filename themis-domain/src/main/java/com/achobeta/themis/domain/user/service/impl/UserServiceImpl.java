@@ -297,7 +297,7 @@ public class UserServiceImpl implements IUserService{
      * @param phone
      */
     @Override
-    public void sendVerifyCode(String phone) {
+    public void sendVerifyCode(String phone) throws Exception {
         log.info("用户发送验证码，手机号：{}", phone);
         // 校验手机号是否存在
         User user = userRepository.findUserByPhone(phone);

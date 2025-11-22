@@ -76,6 +76,16 @@ aliyun:
     access-key-secret: 1234567890abcdef1234567890abcdef
     template-code: SMS_202308100000000000000000000000000
     sign-name: Achobeta
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: sk-41d37baafe774c1ea5dc8e373218df6f
+      model: qwen-plus
+
+meilisearch:
+  host: https://ms-24d67e7301b4-34384.fra.meilisearch.io
+  api-key: 3fe01219b15120642587383a1c6f7126c4e500e1
 
 
 logging:
