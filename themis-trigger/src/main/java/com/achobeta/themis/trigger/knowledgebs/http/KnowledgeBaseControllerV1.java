@@ -4,7 +4,7 @@ import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
-import com.achobeta.themis.domain.user.service.IKnowledgeBase;
+import com.achobeta.themis.domain.user.service.IKnowledgeBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -21,15 +21,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/knowledgebs")
 @RequiredArgsConstructor
-public class KnowledgeBaseController {
+public class KnowledgeBaseControllerV1 {
 
-    private final IKnowledgeBase knowledgeBaseService;
+    private final IKnowledgeBaseService knowledgeBaseService;
 
     /**
-     * 查询知识库问题
+     * 搜索问题
      * @param question
      * @return 知识库问题响应VO列表
      */
+    @LoginRequired
     @GetMapping("/query")
     public ApiResponse<List<KnowledgeBaseQueryResponseVO>> queryKnowledgeBase(@RequestParam("question") String question) {
         log.info("queryKnowledgeBase, question: {}", question);
@@ -58,7 +59,6 @@ public class KnowledgeBaseController {
         }
     }
 
-
     /**
      * 查询常见场景
      * @return 所有常见场景列表
@@ -74,6 +74,19 @@ public class KnowledgeBaseController {
         }
     }
 
-
-
+    /**
+     * 查找用户搜索历史记录
+     * @return 用户搜索历史记录列表
+     */
+    @LoginRequired
+    @GetMapping("/history")
+    public ApiResponse<List<String>> querySearchHistory() {
+        log.info("querySearchHistory");
+        try {
+            return ApiResponse.success(knowledgeBaseService.querySearchHistory());
+        } catch (Exception e) {
+            log.error("查询用户搜索历史记录失败", e);
+            throw e;
+        }
+    }
 }

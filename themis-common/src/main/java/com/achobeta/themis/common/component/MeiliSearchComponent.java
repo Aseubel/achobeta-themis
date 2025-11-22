@@ -1,5 +1,6 @@
 package com.achobeta.themis.common.component;
 
+import com.achobeta.themis.common.component.entity.KnowledgeBaseQuestionDocument;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
 import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.alibaba.fastjson.JSON;
@@ -9,6 +10,7 @@ import com.meilisearch.sdk.SearchRequest;
 import com.meilisearch.sdk.exceptions.MeilisearchException;
 import com.meilisearch.sdk.model.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -215,6 +217,61 @@ public class MeiliSearchComponent implements CommandLineRunner {
     }
 
     /**
+     * 严格搜索：整词完全匹配 + 匹配词数量差距限制
+     * @param query 搜索词（空格分隔的整词）
+     * @param limit 返回数量
+     * @param maxWordDiff 最大词数量差距（如2：查询5词，文档需3-7词）
+     * @return 符合条件的文档
+     */
+    public List<KnowledgeBaseQuestionDocument> strictSearchForKnowledgeBaseQuestion(String query, int limit, int maxWordDiff) {
+        try {
+            // 关键：获取指定索引（knowledge_base_question_documents）
+            Index index = meiliSearchClient.index("knowledge_base_question_documents");
+
+            // 步骤1：分词并获取查询词列表
+            List<String> queryWords = Arrays.asList(query.split(" "));
+            int queryWordCount = queryWords.size();
+
+            // 步骤2：使用精确匹配操作符（=）+ 短语匹配（""）
+            String exactPhraseQuery = "\"" + String.join(" =", queryWords) + "=\"";
+
+            // 步骤3：执行搜索
+            SearchRequest request = new SearchRequest(exactPhraseQuery)
+                    .setLimit(limit)
+                    .setAttributesToSearchOn(new String[]{ "question_segmented" });
+
+             SearchResult raw = (SearchResult) index.search(request);
+            if (raw == null || raw.getHits() == null || raw.getHits().isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<KnowledgeBaseQuestionDocument> hits = JSON.parseArray(JSON.toJSONString(raw.getHits()), KnowledgeBaseQuestionDocument.class);
+
+            // 步骤4：过滤结果：整词完全匹配 + 词数量差距限制
+            List<KnowledgeBaseQuestionDocument> filtered = new ArrayList<>();
+            for (KnowledgeBaseQuestionDocument doc : hits) {
+                String docSegmented = doc.getQuestionSegmented();
+                List<String> docWords = Arrays.asList(docSegmented.split(" "));
+                int docWordCount = docWords.size();
+
+                // 条件1：查询词必须全部出现在文档词中（整词匹配）
+                boolean allWordsMatch = queryWords.stream().allMatch(docWords::contains);
+
+                // 条件2：词数量差距不超过maxWordDiff
+                boolean wordCountMatch = Math.abs(docWordCount - queryWordCount) <= maxWordDiff;
+
+                if (allWordsMatch && wordCountMatch) {
+                    filtered.add(doc);
+                }
+            }
+            return filtered;
+        } catch (Exception e) {
+            log.error("严格搜索失败，索引：knowledge_base_question_documents", e);
+            return Collections.emptyList();
+        }
+    }
+
+
+    /**
      * 检查索引是否存在
      * @param indexName 索引名称
      * @return 如果索引存在则返回true，否则返回false
@@ -310,16 +367,28 @@ public class MeiliSearchComponent implements CommandLineRunner {
             }
             Index index = meiliSearchClient.index(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
             Settings settings = new Settings();
-            settings.setSearchableAttributes(new String[]{ "questionSegmented" });
+            settings.setSearchableAttributes(new String[]{ "question_segmented" });
             settings.setFilterableAttributes(new String[]{ "count" });
             settings.setSortableAttributes(new String[]{ "count" });
 
             TypoTolerance typoTolerance = new TypoTolerance();
-            HashMap<String, Integer> minWordSizeTypos = new HashMap<String, Integer>() {{
-                put("oneTypo", 3);
-                put("twoTypos", 6);
-            }};
-            typoTolerance.setMinWordSizeForTypos(minWordSizeTypos);
+            typoTolerance.setEnabled(false);
+//            HashMap<String, Integer> minWordSizeTypos = new HashMap<String, Integer>() {{
+//                put("oneTypo", 5);
+//                put("twoTypos", 8);
+//            }};
+//            typoTolerance.setMinWordSizeForTypos(minWordSizeTypos);
+//            typoTolerance.setDisableOnWords(Arrays.asList("劳动", "企业", "劳动者", "劳动法").toArray(new String[0]));
+            settings.setTypoTolerance(typoTolerance);
+
+            settings.setRankingRules(new String[]{
+                    "exactness",        // 完全匹配（最高权重，只有完全一致的词才高分）
+                    "proximity",        // 词序邻近度（词的顺序越接近，权重越高）
+                    "words",            // 匹配词数（仅当词序接近时才生效）
+                    "attribute",        // 字段权重
+                    "sort"             // 自定义排序
+            });
+            settings.setProximityPrecision("byWord"); // 按单词粒度计算词序邻近度
 
             TaskInfo taskInfo = index.updateSettings(settings);
             meiliSearchClient.waitForTask(taskInfo.getTaskUid());
@@ -330,9 +399,9 @@ public class MeiliSearchComponent implements CommandLineRunner {
             Map<String, Object> testDoc = new HashMap<>();
             testDoc.put("id", "001");
             testDoc.put("question", "对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？");
-            testDoc.put("questionSegmented", IKPreprocessorUtil.segment("对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？", true));
+            testDoc.put("question_segmented", IKPreprocessorUtil.stopWordSegment("对于企业和劳动者双方来说，《劳动合同法》更侧重保护谁的权益呢？", true));
             testDoc.put("topic", "合同权益");
-            testDoc.put("caseBackground", "企业与劳动者签订劳动合同");
+            testDoc.put("case_background", "企业与劳动者签订劳动合同");
             testDoc.put("count", 1);
             testDoc.put("create_time", LocalDateTime.now());
             index.addDocuments(JSON.toJSONString(Collections.singletonList(testDoc)));

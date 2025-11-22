@@ -18,6 +18,9 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
     private final LawRegulationsMapper lawRegulationsMapper;
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final LawCategoriesMapper lawCategoriesMapper;
+    private final SearchHistoryMapper searchHistoryMapper;
+
+
 
     /**
      * 根据用户问题内容查询问题
@@ -59,19 +62,19 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
     @Override
     public KnowledgeBaseReviewDTO findKnowledgeBaseReviewDetailsById(Long regulationID, Long userQuestionId) {
         KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = new KnowledgeBaseReviewDTO();
-        LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
-                .eq(LawCategories::getLawId, regulationID));
         LawRegulations lawRegulations = lawRegulationsMapper.selectOne(new LambdaQueryWrapper<LawRegulations>()
                 .eq(LawRegulations::getRegulationId, regulationID));
+        LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
+                .eq(LawCategories::getLawId, lawRegulations.getLawCategoryId()));
         QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
                 .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)
                 .eq(QuestionRegulationRelations::getRegulationId, regulationID));
         knowledgeBaseReviewDTO.setLawName(lawCategories.getLawName())
                 .setOriginalText(lawRegulations.getOriginalText())
                 .setArticleNumber(lawRegulations.getArticleNumber())
-                .setTotalArticles(lawCategories.getRelatedRegulationIds().split(",").length)
+                .setTotalArticles(lawCategories.getRelatedRegulationIds().size())
                 .setIssueYear(lawRegulations.getIssueYear());
-        if (userQuestionId == null) {
+        if (userQuestionId != null) {
             knowledgeBaseReviewDTO.setAiTranslation(questionRegulationRelations.getAiTranslation())
                     .setRelevantCases(questionRegulationRelations.getRelevantCases())
                     .setRelevantQuestions(questionRegulationRelations.getRelevantQuestions());
@@ -90,6 +93,27 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
                 .eq(QuestionRegulationRelations::getQuestionId, questionId))
                 .stream()
                 .map(QuestionRegulationRelations::getRegulationId)
+                .toList();
+    }
+
+    @Override
+    public void saveSearchHistory(String userQuestion, Long userId) {
+        searchHistoryMapper.insert(KnowledgeBaseSearchHistory.builder()
+                .userId(userId)
+                .userQuestion(userQuestion)
+                .build()
+        );
+
+    }
+
+    @Override
+    public List<String> findSearchHistoryByUserId(Long currentUserId, int limit) {
+        return searchHistoryMapper.selectList(new LambdaQueryWrapper<KnowledgeBaseSearchHistory>()
+                .eq(KnowledgeBaseSearchHistory::getUserId, currentUserId)
+                .orderByDesc(KnowledgeBaseSearchHistory::getCreateTime)
+                .apply("LIMIT {0}", limit))
+                .stream()
+                .map(KnowledgeBaseSearchHistory::getUserQuestion)
                 .toList();
     }
 }

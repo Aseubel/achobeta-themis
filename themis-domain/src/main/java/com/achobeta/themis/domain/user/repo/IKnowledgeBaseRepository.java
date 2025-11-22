@@ -44,4 +44,19 @@ public interface IKnowledgeBaseRepository {
      * @return
      */
     List<Long> findRegulationIdsByQuestionId(Long questionId);
+
+    /**
+     * 保存搜索历史
+     * @param userQuestion 用户问题内容
+     * @param userId 用户ID
+     */
+    void saveSearchHistory(String userQuestion, Long userId);
+
+    /**
+     * 根据用户ID查询搜索历史
+     * @param currentUserId 用户ID
+     * @param limit 限制数量
+     * @return 搜索历史列表
+     */
+    List<String> findSearchHistoryByUserId(Long currentUserId, int limit);
 }

@@ -35,6 +35,13 @@ mybatis:
     map-underscore-to-camel-case: true
 #  config-location:  classpath:/mybatis/config/mybatis-config.xml
 
+## MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  type-handlers-package: com.achobeta.themis.domain.user.handler
+
 # 线程池配置
 thread:
   pool:

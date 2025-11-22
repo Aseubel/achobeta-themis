@@ -4,7 +4,7 @@ import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
 
 import java.util.List;
 
-public interface IKnowledgeBase {
+public interface IKnowledgeBaseService {
      /**
       * 查询知识库问题
       * @param userQuestion 用户问题
@@ -23,4 +23,8 @@ public interface IKnowledgeBase {
       * @return 所有常见场景列表
       */
     List<String> queryCaseBackgrounds();
+
+    List<String> querySearchHistory();
+
+    void insertKnowledgeBaseData(String userQuestion, String response);
 }

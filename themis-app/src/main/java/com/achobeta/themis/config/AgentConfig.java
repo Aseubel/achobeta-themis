@@ -68,30 +68,28 @@ public class AgentConfig {
                 .build();
     }
 
+
     @Bean("Knowledge")
     public IAiKnowledgeService KnowledgeService() throws IOException {
-        // 读取 prompt-consulter.txt 文件
         ClassPathResource resource = new ClassPathResource("prompt-zhishiku.txt");
         String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
         log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
-
-        // 创建系统消息
         SystemMessage systemMessage = SystemMessage.from(systemPrompt);
-        OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
+        OpenAiChatModel model = OpenAiChatModel.builder()
                 .baseUrl(agentConfigProperties.getBaseUrl())
                 .apiKey(agentConfigProperties.getApiKey())
                 .modelName(agentConfigProperties.getModel())
+                .logRequests(true)
+                .logResponses(true)
                 .build();
-
         return AiServices.builder(IAiKnowledgeService.class)
-                .streamingChatModel(model)
+                .chatModel(model)
                 .chatMemoryProvider(conversationId ->{
                     MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
                             .chatMemoryStore(redisChatMemoryStore)
                             .id(conversationId)
-                            .maxMessages(100)
+                            .maxMessages(2)
                             .build();
-
                     boolean hasSystemMessage = memory.messages().stream()
                             .anyMatch(msg -> msg instanceof SystemMessage);
                     if (!hasSystemMessage) {

@@ -94,6 +94,12 @@
             <version>1.0.1</version>
             <scope>compile</scope>
         </dependency>
+<!--        &lt;!&ndash; DashScope SDK &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.alibaba</groupId>-->
+<!--            <artifactId>dashscope-sdk-java</artifactId>-->
+<!--            <version>2.9.2</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>

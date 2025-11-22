@@ -43,30 +43,30 @@ public class KnowledgeBaseControllerAB {
     private final IKnowledgeQueryService knowledgeQueryService;
     private final IConversationHistoryService conversationHistoryService;
     private final IKnowledgeSearchHistoryService knowledgeSearchHistoryService;
-
-    /**
-     * 知识库查询接口（新版）
-     * 根据用户问题查询相关法律文档并返回AI解析
-     */
-    @PostMapping("/query")
-    public ApiResponse<KnowledgeQueryResponseVO> queryKnowledge(
-            @Valid @RequestBody KnowledgeQueryRequestVO request
-    ) {
-        try {
-            String userId = SecurityUtils.getCurrentUserId();
-            log.info("用户 {} 查询知识库: {}", userId, request.getQuestion());
-            
-            KnowledgeQueryResponseVO response = knowledgeQueryService.queryKnowledge(userId, request);
-            
-            return ApiResponse.success(response);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("知识库查询失败", e);
-            return ApiResponse.error(e.getMessage());
-        }
-    }
-    
+//
+//    /**
+//     * 知识库查询接口（新版）
+//     * 根据用户问题查询相关法律文档并返回AI解析
+//     */
+//    @PostMapping("/query")
+//    public ApiResponse<KnowledgeQueryResponseVO> queryKnowledge(
+//            @Valid @RequestBody KnowledgeQueryRequestVO request
+//    ) {
+//        try {
+//            String userId = SecurityUtils.getCurrentUserId();
+//            log.info("用户 {} 查询知识库: {}", userId, request.getQuestion());
+//
+//            KnowledgeQueryResponseVO response = knowledgeQueryService.queryKnowledge(userId, request);
+//
+//            return ApiResponse.success(response);
+//        } catch (BusinessException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("知识库查询失败", e);
+//            return ApiResponse.error(e.getMessage());
+//        }
+//    }
+//
 
     
 
