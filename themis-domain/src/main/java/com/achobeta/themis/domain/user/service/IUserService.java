@@ -47,7 +47,7 @@ public interface IUserService {
      * 发送验证码
      * @param phone
      */
-    void sendVerifyCode(String phone);
+    void sendVerifyCode(String phone) throws Exception;
 
     /**
      * 用户登出

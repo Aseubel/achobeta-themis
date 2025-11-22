@@ -84,8 +84,8 @@ public class LawDataFixController {
             Settings settings = new Settings();
             
             settings.setSearchableAttributes(new String[]{ "originalTextSegmented", "lawName" });
-            settings.setFilterableAttributes(new String[]{ "lawCategoryId", "articleNumber", "issueYear" });
-            settings.setSortableAttributes(new String[]{ "articleNumber" });
+            settings.setFilterableAttributes(new String[]{ "lawCategoryId", "articleNumber", "issueYear", "categoryType" });
+            settings.setSortableAttributes(new String[]{ "articleNumber", "createTime" });
             
             TaskInfo settingsTask = index.updateSettings(settings);
             meiliSearchClient.waitForTask(settingsTask.getTaskUid());
@@ -143,18 +143,23 @@ public class LawDataFixController {
                         .id(regulation.getRegulationId())
                         .lawName(category.getLawName())
                         .lawCategoryId(regulation.getLawCategoryId())
+                        .categoryType(category.getCategoryType())
                         .articleNumber(regulation.getArticleNumber())
                         .originalText(regulation.getOriginalText())
                         .originalTextSegmented(segmentedText)
                         .issueYear(regulation.getIssueYear())
                         .relatedRegulationIds(category.getRelatedRegulationIds())
                         .createTime(regulation.getCreateTime())
+                        .updateTime(regulation.getUpdateTime())
                         .build();
                 
                 lawDocuments.add(document);
             }
             
-            log.info("准备导入 {} 条数据", lawDocuments.size());
+            // 统计国家法规和地方法规数量
+            long nationalCount = lawDocuments.stream().filter(doc -> doc.getCategoryType() == 1).count();
+            long localCount = lawDocuments.stream().filter(doc -> doc.getCategoryType() == 0).count();
+            log.info("准备导入 {} 条数据（国家法规: {}, 地方法规: {}）", lawDocuments.size(), nationalCount, localCount);
             
             // 4. 批量添加到 Meilisearch
             Index index = meiliSearchClient.index("law_documents");
@@ -186,6 +191,67 @@ public class LawDataFixController {
             result.put("状态", "失败");
             result.put("错误", e.getMessage());
             e.printStackTrace();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 验证数据完整性
+     */
+    @GetMapping("/validate-data")
+    public Map<String, Object> validateData() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 1. 查询数据库数据
+            List<LawCategory> categories = lawCategoryMapper.selectList(null);
+            List<LawRegulation> regulations = lawRegulationMapper.selectList(null);
+            
+            // 2. 统计数据
+            long nationalCategories = categories.stream().filter(c -> c.getCategoryType() == 1).count();
+            long localCategories = categories.stream().filter(c -> c.getCategoryType() == 0).count();
+            
+            // 3. 检查关联关系
+            Map<Integer, LawCategory> categoryMap = new HashMap<>();
+            for (LawCategory category : categories) {
+                categoryMap.put(category.getLawId(), category);
+            }
+            
+            long orphanedRegulations = regulations.stream()
+                    .filter(reg -> !categoryMap.containsKey(reg.getLawCategoryId()))
+                    .count();
+            
+            // 4. 检查 Meilisearch 索引
+            Index index = meiliSearchClient.index("law_documents");
+            var stats = index.getStats();
+            
+            result.put("状态", "成功");
+            result.put("数据库统计", Map.of(
+                    "法律分类总数", categories.size(),
+                    "国家法规分类", nationalCategories,
+                    "地方法规分类", localCategories,
+                    "法律条文总数", regulations.size(),
+                    "孤立条文数", orphanedRegulations
+            ));
+            result.put("Meilisearch统计", Map.of(
+                    "索引文档总数", stats.getNumberOfDocuments(),
+                    "是否正在索引", stats.isIndexing()
+            ));
+            
+            // 5. 数据一致性检查
+            long expectedDocuments = regulations.size() - orphanedRegulations;
+            boolean isConsistent = stats.getNumberOfDocuments() == expectedDocuments;
+            result.put("数据一致性", Map.of(
+                    "预期文档数", expectedDocuments,
+                    "实际文档数", stats.getNumberOfDocuments(),
+                    "是否一致", isConsistent
+            ));
+            
+        } catch (Exception e) {
+            log.error("验证数据失败", e);
+            result.put("状态", "失败");
+            result.put("错误", e.getMessage());
         }
         
         return result;

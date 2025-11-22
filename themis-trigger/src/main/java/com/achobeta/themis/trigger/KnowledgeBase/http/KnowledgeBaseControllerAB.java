@@ -34,7 +34,7 @@ import java.util.List;
 @RequestMapping("/api/knowledge")
 @RequiredArgsConstructor
 @LoginRequired
-public class KnowledgeBaseController {
+public class KnowledgeBaseControllerAB {
     
     @Autowired
     @Qualifier("Knowledge")
