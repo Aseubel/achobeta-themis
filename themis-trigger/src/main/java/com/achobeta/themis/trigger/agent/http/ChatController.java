@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -90,6 +91,20 @@ public class ChatController {
         }
     }
 
+
+    /**
+     * 新建对话，返回新 conversationId
+     * */
+    @PostMapping("/newOr")
+    public ApiResponse<String> newOr() {
+
+        try {
+            return ApiResponse.success(UUID.randomUUID().toString());
+        } catch (Exception e) {
+            log.error("新建对话失败", e);
+            return ApiResponse.error("新建对话失败: " + e.getMessage());
+        }
+    }
     /**
      * 新建对话：归档当前，返回新 conversationId
      */
@@ -97,7 +112,7 @@ public class ChatController {
     public ApiResponse<String> newConversation(
             // @RequestParam("userId") Long userId,
             @RequestParam(value = "title",defaultValue = "未命名") String title,
-            @RequestParam(value = "currentConversationId", required = false) String currentConversationId
+            @RequestParam(value = "currentConversationId") String currentConversationId
     ) {
 
         try {
