@@ -76,7 +76,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
             List<KnowledgeBaseQuestionDocument> questionDocuments = null;
             try {
                 String str = IKPreprocessorUtil.stopWordSegment(userQuestion, true);
-                questionDocuments = meiliSearchComponent.strictSearchForKnowledgeBaseQuestion(str, 1, 2);
+                questionDocuments = meiliSearchComponent.strictSearchForKnowledgeBaseQuestion(str, 1, 1);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
