@@ -1,6 +1,7 @@
 package com.achobeta.themis.domain.user.repo;
 
 import com.achobeta.themis.domain.user.model.entity.KnowledgeBaseReviewDTO;
+import com.achobeta.themis.domain.user.model.entity.KnowledgeBaseSearchHistory;
 import com.achobeta.themis.domain.user.model.entity.QuestionRegulationRelations;
 import com.achobeta.themis.domain.user.model.entity.Questions;
 
@@ -59,4 +60,8 @@ public interface IKnowledgeBaseRepository {
      * @return 搜索历史列表
      */
     List<String> findSearchHistoryByUserId(Long currentUserId, int limit);
+
+    void removeSearchHistory(Long historyId);
+
+    KnowledgeBaseSearchHistory findSearchHistoryByUserIdAndUserQuestionContent(Long currentUserId, String historyQuery);
 }

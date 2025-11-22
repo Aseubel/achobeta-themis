@@ -27,4 +27,7 @@ public interface IKnowledgeBaseService {
     List<String> querySearchHistory();
 
     void insertKnowledgeBaseData(String userQuestion, String response);
+
+    void deleteSearchHistory(String historyQuery);
+
 }

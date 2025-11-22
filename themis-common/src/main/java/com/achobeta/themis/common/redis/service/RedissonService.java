@@ -134,6 +134,11 @@ public class RedissonService implements IRedisService {
         return list.readAll();
     }
 
+    @Override
+    public void removeList(String key) {
+        redissonClient.getList(key).clear();
+    }
+
     public String getFromList(String key, int index) {
         RList<String> list = redissonClient.getList(key);
         return list.get(index);
