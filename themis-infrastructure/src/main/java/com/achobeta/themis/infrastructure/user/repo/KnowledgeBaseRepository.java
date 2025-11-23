@@ -111,9 +111,22 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
         return searchHistoryMapper.selectList(new LambdaQueryWrapper<KnowledgeBaseSearchHistory>()
                 .eq(KnowledgeBaseSearchHistory::getUserId, currentUserId)
                 .orderByDesc(KnowledgeBaseSearchHistory::getCreateTime)
-                .apply("LIMIT {0}", limit))
+                .last("LIMIT " + limit))
                 .stream()
                 .map(KnowledgeBaseSearchHistory::getUserQuestion)
                 .toList();
+    }
+
+    @Override
+    public void removeSearchHistory(Long historyId) {
+        searchHistoryMapper.delete(new LambdaQueryWrapper<KnowledgeBaseSearchHistory>()
+                .eq(KnowledgeBaseSearchHistory::getId, historyId));
+    }
+
+    @Override
+    public KnowledgeBaseSearchHistory findSearchHistoryByUserIdAndUserQuestionContent(Long currentUserId, String historyQuery) {
+        return searchHistoryMapper.selectOne(new LambdaQueryWrapper<KnowledgeBaseSearchHistory>()
+                .eq(KnowledgeBaseSearchHistory::getUserId, currentUserId)
+                .eq(KnowledgeBaseSearchHistory::getUserQuestion, historyQuery));
     }
 }

@@ -189,6 +189,13 @@ public interface IRedisService {
      */
     List<String> getList(String key);
 
+    /**
+     * 删除整个list
+     *
+     * @param key 键
+     */
+    void removeList(String key);
+
 
 
     /**

@@ -8,6 +8,7 @@ import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.redis.service.IRedisService;
 import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.achobeta.themis.domain.user.model.entity.KnowledgeBaseReviewDTO;
+import com.achobeta.themis.domain.user.model.entity.KnowledgeBaseSearchHistory;
 import com.achobeta.themis.domain.user.model.entity.QuestionRegulationRelations;
 import com.achobeta.themis.domain.user.model.entity.Questions;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
@@ -62,15 +63,26 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
     public List<KnowledgeBaseQueryResponseVO> query(String userQuestion) {
         Long currentUserId = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
         threadPoolTaskExecutor.execute(() -> {
-            knowledgeBaseRepository.saveSearchHistory(userQuestion, currentUserId);
-            redissonService.addToList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, userQuestion);
-            redissonService.setListExpired(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, TimeUnit.HOURS.toMillis(3));
+            KnowledgeBaseSearchHistory history = knowledgeBaseRepository.findSearchHistoryByUserIdAndUserQuestionContent(currentUserId, userQuestion);
+            if (history == null) {
+                knowledgeBaseRepository.saveSearchHistory(userQuestion, currentUserId);
+                redissonService.addToList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, userQuestion);
+                redissonService.setListExpired(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, TimeUnit.HOURS.toMillis(3));
+            }
         });
         Long questionId = null;
         // 先查MySQL的问题表
         Questions question = knowledgeBaseRepository.findQuestionByUserQuestionContent(userQuestion);
         if (question != null) {
             questionId = question.getId();
+            // 用问题id找对应文档
+            KnowledgeBaseQuestionDocument questionDocument = meiliSearchComponent.getKnowledgeBaseQuestionDocumentById(KNOWLEDGE_BASE_QUESTION_DOCUMENTS, questionId);
+            if (questionDocument == null) {
+                log.warn("未找到问题id对应的文档");
+                throw new BusinessException("未找到问题id对应的文档");
+            }
+            // 更新文档的点击次数
+            meiliSearchComponent.updateCount(KNOWLEDGE_BASE_QUESTION_DOCUMENTS, questionDocument.getId(), questionDocument.getCount() + 1);
         } else {
             // 无结果时，meilisearch查问题
             List<KnowledgeBaseQuestionDocument> questionDocuments = null;
@@ -151,12 +163,12 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
         Long currentUserId = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
         // 从Redis中获取搜索历史
         List<String> searchHistoryList = redissonService.getList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId);
-        if (searchHistoryList.size() > 10){
-            searchHistoryList = searchHistoryList.subList(searchHistoryList.size() - 10, searchHistoryList.size()).reversed();
+        if (searchHistoryList.size() > 5){
+            searchHistoryList = searchHistoryList.subList(searchHistoryList.size() - 5, searchHistoryList.size()).reversed();
         }
-        if (searchHistoryList == null) {
-            // 在数据库里查10条
-            searchHistoryList = knowledgeBaseRepository.findSearchHistoryByUserId(currentUserId, 10);
+        if (searchHistoryList.size() < 5) {
+            // 在数据库里查5条
+            searchHistoryList = knowledgeBaseRepository.findSearchHistoryByUserId(currentUserId, 5);
             for (String searchHistory : searchHistoryList) {
                 redissonService.addToList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId, searchHistory);
             }
@@ -195,6 +207,18 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
                 }
             }
         });
+    }
+
+    @Override
+    public void deleteSearchHistory(String historyQuery) {
+        Long currentUserId = (Long) ((Map<String, Object>) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).get("id");
+        redissonService.removeList(KNOWLEDGE_BASE_SEARCH_HISTORY_KEY + currentUserId);
+        KnowledgeBaseSearchHistory knowledgeBaseSearchHistory = knowledgeBaseRepository.findSearchHistoryByUserIdAndUserQuestionContent(currentUserId, historyQuery);
+        if (knowledgeBaseSearchHistory == null) {
+            log.info("用户{}未搜索过问题{}", currentUserId, historyQuery);
+            throw new BusinessException("用户未搜索过该问题");
+        }
+        knowledgeBaseRepository.removeSearchHistory(knowledgeBaseSearchHistory.getId());
     }
 
     /**

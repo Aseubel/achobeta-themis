@@ -7,11 +7,9 @@ import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
 import com.achobeta.themis.domain.user.service.IKnowledgeBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,6 +25,7 @@ public class KnowledgeBaseControllerV1 {
 
     /**
      * 搜索问题
+     *
      * @param question
      * @return 知识库问题响应VO列表
      */
@@ -46,6 +45,7 @@ public class KnowledgeBaseControllerV1 {
 
     /**
      * 查找topic
+     *
      * @return 所有topic列表
      */
     @GetMapping("/topic")
@@ -61,9 +61,10 @@ public class KnowledgeBaseControllerV1 {
 
     /**
      * 查询常见场景
+     *
      * @return 所有常见场景列表
      */
-     @GetMapping("/case")
+    @GetMapping("/case")
     public ApiResponse<List<String>> queryCaseBackgrounds() {
         log.info("queryCaseBackgrounds");
         try {
@@ -76,6 +77,7 @@ public class KnowledgeBaseControllerV1 {
 
     /**
      * 查找用户搜索历史记录
+     *
      * @return 用户搜索历史记录列表
      */
     @LoginRequired
@@ -86,6 +88,24 @@ public class KnowledgeBaseControllerV1 {
             return ApiResponse.success(knowledgeBaseService.querySearchHistory());
         } catch (Exception e) {
             log.error("查询用户搜索历史记录失败", e);
+            throw e;
+        }
+    }
+
+    /**
+     * 删除用户搜索历史记录
+     *
+     * @return 删除结果
+     */
+    @LoginRequired
+    @DeleteMapping("/history/delete")
+    public ApiResponse<String> deleteSearchHistory(@RequestParam("historyQuery") String historyQuery) {
+        log.info("deleteSearchHistory, historyQuery: {}", historyQuery);
+        try {
+            knowledgeBaseService.deleteSearchHistory(historyQuery);
+            return ApiResponse.success("删除成功");
+        } catch (Exception e) {
+            log.error("删除用户搜索历史记录失败", e);
             throw e;
         }
     }

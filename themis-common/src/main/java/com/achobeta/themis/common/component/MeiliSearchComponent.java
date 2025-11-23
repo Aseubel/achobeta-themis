@@ -270,6 +270,26 @@ public class MeiliSearchComponent implements CommandLineRunner {
         }
     }
 
+    public KnowledgeBaseQuestionDocument getKnowledgeBaseQuestionDocumentById(String knowledgeBaseQuestionDocuments, Long questionId) {
+        try {
+            Index index = meiliSearchClient.index(knowledgeBaseQuestionDocuments);
+            SearchRequest req = new SearchRequest(questionId.toString());
+            req.setAttributesToSearchOn(new String[]{"questionId"});//设置可搜索字段
+            req.setLimit(1);
+
+            SearchResult raw = (SearchResult) index.search(req);
+            if (raw == null || raw.getHits() == null || raw.getHits().isEmpty()) {
+                return null;
+            }
+
+            String json = JSON.toJSONString(raw.getHits().get(0));
+            return JSON.parseObject(json, KnowledgeBaseQuestionDocument.class);
+        } catch (Exception e) {
+            log.error("搜索知识库问题文档失败，questionId={}", questionId, e);
+            throw e;
+        }
+    }
+
 
     /**
      * 检查索引是否存在
@@ -361,13 +381,14 @@ public class MeiliSearchComponent implements CommandLineRunner {
             if (isIndexExists(KNOWLEDGE_BASE_QUESTION_DOCUMENTS)) {
                 log.info("索引 {} 已存在，无需重复创建", KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
                 // 删除索引
-                //meiliSearchClient.deleteIndex(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
-                //Thread.sleep(500);
-                return;
+                meiliSearchClient.deleteIndex(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+                Thread.sleep(500);
+                //return;
             }
             Index index = meiliSearchClient.index(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+            Thread.sleep(300);
             Settings settings = new Settings();
-            settings.setSearchableAttributes(new String[]{ "question_segmented" });
+            settings.setSearchableAttributes(new String[]{ "question_segmented", "questionId" });
             settings.setFilterableAttributes(new String[]{ "count" });
             settings.setSortableAttributes(new String[]{ "count" });
 
@@ -403,9 +424,10 @@ public class MeiliSearchComponent implements CommandLineRunner {
             testDoc.put("topic", "合同权益");
             testDoc.put("case_background", "企业与劳动者签订劳动合同");
             testDoc.put("count", 1);
+       //     testDoc.put("questionId", 0L);
             testDoc.put("create_time", LocalDateTime.now());
             index.addDocuments(JSON.toJSONString(Collections.singletonList(testDoc)));
-            log.info("已插入测试文档，确保 questionSegmented 字段可搜索");
+            log.info("已插入测试文档，确保 question_segmented，questionId 字段可搜索");
         }
         catch (MeilisearchException e) {
             throw new RuntimeException(e);
