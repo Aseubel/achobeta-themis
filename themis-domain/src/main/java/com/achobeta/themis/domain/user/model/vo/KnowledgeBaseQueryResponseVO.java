@@ -14,7 +14,9 @@ import java.util.List;
 public class KnowledgeBaseQueryResponseVO {
     // 法律名称
     private String lawName;
-    // 法律内容
+    // 法条id
+    private Integer regulationId;
+    // 法条内容
     private String regulationContent;
     // 法律翻译内容
     private String aiTranslateContent;

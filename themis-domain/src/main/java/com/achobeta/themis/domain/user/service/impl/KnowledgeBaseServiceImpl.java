@@ -126,7 +126,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
         Long questionIdForSearch = questionId;
         return regulationIds.stream().map(regulationId ->{
             KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = knowledgeBaseRepository.findKnowledgeBaseReviewDetailsById(regulationId, questionIdForSearch);
-                        return knowledgeBaseBaseReviewToKnowledgeBaseQueryResponseVO(knowledgeBaseReviewDTO);
+                        return knowledgeBaseBaseReviewToKnowledgeBaseQueryResponseVO(knowledgeBaseReviewDTO, regulationId.intValue());
         }).collect(Collectors.toList());
     }
 
@@ -242,6 +242,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
                     KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = knowledgeBaseRepository.findKnowledgeBaseReviewDetailsById(regulationID, null);
                     return KnowledgeBaseQueryResponseVO.builder()
                             .lawName(knowledgeBaseReviewDTO.getLawName())
+                            .regulationId(regulationID.intValue())
                             .regulationContent(knowledgeBaseReviewDTO.getOriginalText())
                             .aiTranslateContent(regulation.getString("aiTranslation"))
                             .relevantCases(regulation.getJSONArray("relevantCases").toList(KnowledgeBaseQueryResponseVO.RelevantCases.class))
@@ -259,11 +260,12 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
      * @param knowledgeBaseReviewDTO
      * @return
      */
-    private KnowledgeBaseQueryResponseVO knowledgeBaseBaseReviewToKnowledgeBaseQueryResponseVO(KnowledgeBaseReviewDTO knowledgeBaseReviewDTO) {
+    private KnowledgeBaseQueryResponseVO knowledgeBaseBaseReviewToKnowledgeBaseQueryResponseVO(KnowledgeBaseReviewDTO knowledgeBaseReviewDTO, Integer regulationId) {
         String relevantCases = knowledgeBaseReviewDTO.getRelevantCases();
         String relevantQuestions = knowledgeBaseReviewDTO.getRelevantQuestions();
         return KnowledgeBaseQueryResponseVO.builder()
                 .lawName(knowledgeBaseReviewDTO.getLawName())
+                .regulationId(regulationId)
                 .regulationContent(knowledgeBaseReviewDTO.getOriginalText())
                 .aiTranslateContent(knowledgeBaseReviewDTO.getAiTranslation())
                 .relevantCases(JSONUtil.toList(knowledgeBaseReviewDTO.getRelevantCases(), KnowledgeBaseQueryResponseVO.RelevantCases.class))
