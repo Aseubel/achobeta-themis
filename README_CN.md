@@ -2,6 +2,34 @@
 
 AchoBeta Themis 裁衡-2025年-J组-复试项目
 
+---
+
+## 🌐 新功能：AI 联网搜索
+
+项目现已集成 **Tavily Search API**，为 AI 模型提供实时网络搜索能力！
+
+### 快速开始
+
+1. **获取 Tavily API Key**
+   - 访问 https://app.tavily.com/sign-up 注册
+   - 在 Dashboard 中复制你的 API Key
+
+2. **配置 API Key**
+   
+   在 `themis-app/src/main/resources/application-dev.yml` 中添加：
+   ```yaml
+   tavily:
+     api-key: tvly-xxxxxxxxxxxxxx  # 替换为你的 API Key
+   ```
+
+3. **使用示例**
+   - 用户："今天的天气怎么样？"
+   - AI 自动调用网络搜索，返回实时信息
+
+📚 **详细文档**：查看 `docs/TAVILY_SETUP_GUIDE.md`
+
+---
+
 # 开发之前
 
 1. 请在根目录执行下面的命令
