@@ -1,6 +1,7 @@
 package com.achobeta.themis.domain.user.service.impl;
 
 import com.achobeta.themis.domain.user.model.entity.Questions;
+import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
 import com.achobeta.themis.domain.user.repo.ITestRepository;
 import com.achobeta.themis.domain.user.service.ITestService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ public class TestServiceImpl implements ITestService {
     private final ITestRepository testRepository;
 
     @Override
-    public List<Questions> queryQuestions() {
+    public List<QuestionsForDataInserted> queryQuestions() {
         return testRepository.queryQuestions();
     }
 }

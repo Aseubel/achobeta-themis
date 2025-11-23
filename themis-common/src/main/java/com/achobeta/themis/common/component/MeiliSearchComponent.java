@@ -381,9 +381,9 @@ public class MeiliSearchComponent implements CommandLineRunner {
             if (isIndexExists(KNOWLEDGE_BASE_QUESTION_DOCUMENTS)) {
                 log.info("索引 {} 已存在，无需重复创建", KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
                 // 删除索引
-                meiliSearchClient.deleteIndex(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
-                Thread.sleep(500);
-                //return;
+                //meiliSearchClient.deleteIndex(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
+                //Thread.sleep(500);
+                return;
             }
             Index index = meiliSearchClient.index(KNOWLEDGE_BASE_QUESTION_DOCUMENTS);
             Thread.sleep(300);
