@@ -65,7 +65,7 @@ public class VerifyCodeServiceImpl implements IVerifyCodeService {
     public void sendVerifyCode(String phone, String code) throws Exception {
 
             String url = "https://push.spug.cc/sms/CcAZlcoqQaCkqzPhyfoRTg";
-            String json = "{\"name\":\"验证码\",\"code\":\"153146\",\"to\":\"15710819457\"}";
+        String json = String.format("{\"name\":\"验证码\",\"code\":\"%s\",\"to\":\"%s\"}", code, phone);
 
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod("POST");
