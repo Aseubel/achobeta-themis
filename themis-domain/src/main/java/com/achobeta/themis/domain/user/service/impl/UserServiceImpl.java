@@ -305,6 +305,7 @@ public class UserServiceImpl implements IUserService{
             throw new BusinessException("手机号不存在");
         }
         String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(SMS_CODE_EXPIRE_MINUTES));
+
         // 发送验证码
         log.info("发送验证码：{}", code);
 
