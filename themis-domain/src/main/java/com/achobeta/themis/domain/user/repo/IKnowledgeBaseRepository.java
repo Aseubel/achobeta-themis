@@ -61,7 +61,17 @@ public interface IKnowledgeBaseRepository {
      */
     List<String> findSearchHistoryByUserId(Long currentUserId, int limit);
 
+    /**
+     * 删除搜索历史
+     * @param historyId 搜索历史ID
+     */
     void removeSearchHistory(Long historyId);
 
+    /**
+     * 根据用户ID和用户问题内容查询搜索历史
+     * @param currentUserId 用户ID
+     * @param historyQuery 用户问题内容
+     * @return 搜索历史实体
+     */
     KnowledgeBaseSearchHistory findSearchHistoryByUserIdAndUserQuestionContent(Long currentUserId, String historyQuery);
 }
