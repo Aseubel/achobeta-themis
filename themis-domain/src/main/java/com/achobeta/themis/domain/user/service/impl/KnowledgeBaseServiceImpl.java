@@ -244,6 +244,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
                             .lawName(knowledgeBaseReviewDTO.getLawName())
                             .regulationId(regulationID.intValue())
                             .regulationContent(knowledgeBaseReviewDTO.getOriginalText())
+                            .relatedRegulationList(regulation.getJSONArray("relatedRegulationList").toList(String.class))
                             .aiTranslateContent(regulation.getString("aiTranslation"))
                             .relevantCases(regulation.getJSONArray("relevantCases").toList(KnowledgeBaseQueryResponseVO.RelevantCases.class))
                             .relevantQuestions(regulation.getJSONArray("relevantQuestions").toList(String.class))
@@ -270,6 +271,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
                 .aiTranslateContent(knowledgeBaseReviewDTO.getAiTranslation())
                 .relevantCases(JSONUtil.toList(knowledgeBaseReviewDTO.getRelevantCases(), KnowledgeBaseQueryResponseVO.RelevantCases.class))
                 .relevantQuestions(JSONUtil.toList(knowledgeBaseReviewDTO.getRelevantQuestions(), String.class))
+                .relatedRegulationList(JSONUtil.toList(knowledgeBaseReviewDTO.getRelatedRegulationList(), String.class))
                 .articleNumber(knowledgeBaseReviewDTO.getArticleNumber())
                 .totalArticles(knowledgeBaseReviewDTO.getTotalArticles())
                 .issueYear(knowledgeBaseReviewDTO.getIssueYear())
@@ -398,6 +400,7 @@ public class KnowledgeBaseServiceImpl implements IKnowledgeBaseService {
                             .aiTranslation(regulation.getString("aiTranslation"))
                             .relevantCases(regulation.getJSONArray("relevantCases").toJSONString())
                             .relevantQuestions(regulation.getJSONArray("relevantQuestions").toJSONString())
+                            .relevantRegulations(regulation.getJSONArray("relatedRegulationList").toJSONString())
                             .build();
                 })
                 .collect(Collectors.toList());

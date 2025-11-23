@@ -29,6 +29,15 @@ public class Constant {
     };
     public static final String SYSTEM_LOCAL_PATH = "D:\\A\\ruku\\upload";
 
+    // 系统字体路径（Linux 下）
+//    public static final String[] SYSTEM_FONTS = {
+//            "/usr/share/fonts/truetype/simsun/simsun.ttc",       // 宋体（Linux下常见路径）
+//            "/usr/share/fonts/truetype/microsoft/msyh.ttf",      // 微软雅黑（需安装Windows字体包）
+//            "/usr/share/fonts/truetype/simhei/simhei.ttf",       // 黑体（Linux下常见路径）
+//            "/usr/share/fonts/truetype/noto/NotoSerifCJKsc.ttf"  // 备选：Linux原生中文字体（Noto宋体）
+//    };
+//    public static final String SYSTEM_LOCAL_PATH = "/data/ruku/upload";  // Linux本地存储路径（建议）
+
     // meilisearch相关
      public static final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
      public static final String KNOWLEDGE_BASE_QUESTION_DOCUMENTS = "knowledge_base_question_documents";

@@ -20,6 +20,8 @@ public class KnowledgeBaseQueryResponseVO {
     private String regulationContent;
     // 法律翻译内容
     private String aiTranslateContent;
+    // 关联法条
+    private List<String> relatedRegulationList;
     // 相关案例
     private List<RelevantCases> relevantCases;
     // 相关问题

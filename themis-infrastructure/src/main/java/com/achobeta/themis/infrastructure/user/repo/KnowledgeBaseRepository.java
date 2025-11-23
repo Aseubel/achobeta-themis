@@ -66,18 +66,19 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
                 .eq(LawRegulations::getRegulationId, regulationID));
         LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
                 .eq(LawCategories::getLawId, lawRegulations.getLawCategoryId()));
-        QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
-                .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)
-                .eq(QuestionRegulationRelations::getRegulationId, regulationID));
         knowledgeBaseReviewDTO.setLawName(lawCategories.getLawName())
                 .setOriginalText(lawRegulations.getOriginalText())
                 .setArticleNumber(lawRegulations.getArticleNumber())
                 .setTotalArticles(lawCategories.getRelatedRegulationIds().size())
                 .setIssueYear(lawRegulations.getIssueYear());
         if (userQuestionId != null) {
+            QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
+                    .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)
+                    .eq(QuestionRegulationRelations::getRegulationId, regulationID));
             knowledgeBaseReviewDTO.setAiTranslation(questionRegulationRelations.getAiTranslation())
                     .setRelevantCases(questionRegulationRelations.getRelevantCases())
-                    .setRelevantQuestions(questionRegulationRelations.getRelevantQuestions());
+                    .setRelevantQuestions(questionRegulationRelations.getRelevantQuestions())
+                    .setRelatedRegulationList(questionRegulationRelations.getRelevantRegulations());
         }
         return knowledgeBaseReviewDTO;
     }
