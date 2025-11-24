@@ -1,5 +1,7 @@
 package com.achobeta.themis.common;
 
+import java.io.File;
+
 /**
  * @author Aseubel
  * @date 2025/6/28 下午9:28
@@ -22,21 +24,16 @@ public class Constant {
 
     // 系统文件路径 （Windows 下） #TODO Linux下需要修改
     public static final String[] SYSTEM_FONTS = {
+            "themis-common/src/main/resources/fronts/simsun.ttc",
             "C:\\Windows\\Fonts\\simsun.ttc",
             "C:\\Windows\\Fonts\\simsun.ttf",
             "C:\\Windows\\Fonts\\msyh.ttf",
             "C:\\Windows\\Fonts\\simhei.ttf"
     };
-    public static final String SYSTEM_LOCAL_PATH = "D:\\A\\ruku\\upload";
+//    public static final String SYSTEM_LOCAL_PATH = "D:" + File.separator + "A" + File.separator + "ruku" + File.separator + "upload";
 
-    // 系统字体路径（Linux 下）
-//    public static final String[] SYSTEM_FONTS = {
-//            "/usr/share/fonts/truetype/simsun/simsun.ttc",       // 宋体（Linux下常见路径）
-//            "/usr/share/fonts/truetype/microsoft/msyh.ttf",      // 微软雅黑（需安装Windows字体包）
-//            "/usr/share/fonts/truetype/simhei/simhei.ttf",       // 黑体（Linux下常见路径）
-//            "/usr/share/fonts/truetype/noto/NotoSerifCJKsc.ttf"  // 备选：Linux原生中文字体（Noto宋体）
-//    };
-//    public static final String SYSTEM_LOCAL_PATH = "/data/ruku/upload";  // Linux本地存储路径（建议）
+
+    public static final String SYSTEM_LOCAL_PATH = "/data/ruku/upload";  // Linux本地存储路径
 
     // meilisearch相关
      public static final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
