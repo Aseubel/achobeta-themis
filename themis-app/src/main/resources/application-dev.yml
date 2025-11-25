@@ -84,7 +84,6 @@ logging:
     root: info
   config: classpath:logback-spring.xml
 
-
 # Tavily 搜索配置
 tavily:
   api-key: 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  # 请替换为你的 Tavily API Key
