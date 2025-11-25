@@ -35,6 +35,13 @@ mybatis:
     map-underscore-to-camel-case: true
 #  config-location:  classpath:/mybatis/config/mybatis-config.xml
 
+## MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  type-handlers-package: com.achobeta.themis.domain.user.handler
+
 # 线程池配置
 thread:
   pool:
@@ -96,3 +103,8 @@ langchain4j:
 meilisearch:
   host: http://localhost:7700
   api-key: ${MEILISEARCH_API_KEY}
+
+# Tavily 搜索配置
+tavily:
+  api-key: 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  # 请替换为你的 Tavily API Key
+  api-url: https://api.tavily.com/search

@@ -16,9 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,121 +31,121 @@ public class KnowledgeQueryServiceImpl implements IKnowledgeQueryService {
     private final IConversationHistoryService conversationHistoryService;
     private final IKnowledgeSearchHistoryService knowledgeSearchHistoryService;
     
-    @Autowired
-    @Qualifier("Knowledge")
-    private IAiKnowledgeService aiKnowledgeService;
-    
-    @Override
-    public KnowledgeQueryResponseVO queryKnowledge(String userId, KnowledgeQueryRequestVO request) throws Exception {
-        log.info("用户 {} 查询知识库: {}", userId, request.getQuestion());
-        
-        // 1. 处理对话ID
-        String conversationId = request.getConversationId();
-        if (conversationId == null || conversationId.isBlank()) {
-            // 创建新对话
-            conversationId = UUID.randomUUID().toString();
+//    @Autowired
+//    @Qualifier("Knowledge")
+//    private IAiKnowledgeService aiKnowledgeService;
+//
+//    @Override
+//    public KnowledgeQueryResponseVO queryKnowledge(String userId, KnowledgeQueryRequestVO request) throws Exception {
+//        log.info("用户 {} 查询知识库: {}", userId, request.getQuestion());
+//
+//        // 1. 处理对话ID
+//        String conversationId = request.getConversationId();
+//        if (conversationId == null || conversationId.isBlank()) {
+//            // 创建新对话
+//            conversationId = UUID.randomUUID().toString();
+//
+//            log.info("创建新对话id: {}", conversationId);
+//        } else {
+//            // 触碰现有对话，续期
+//            conversationHistoryService.touch(userId, conversationId);
+//            log.info("继续对话: {}", conversationId);
+//        }
+//
+//        // 2. 从MeiliSearch搜索相关法律文档
+//        List<LawDocument> lawDocuments = knowledgeQueryRepository.searchLawDocuments(
+//                request.getQuestion(),
+//                request.getLawCategoryId(),
+//                request.getLimit()
+//        );
+//
+//        if (lawDocuments == null || lawDocuments.isEmpty()) {
+//            log.warn("未找到相关法律文档");
+//            return KnowledgeQueryResponseVO.builder()
+//                    .conversationId(conversationId)
+//                    .lawDocumentsWithAnalysis(List.of())
+//                    .timestamp(System.currentTimeMillis())
+//                    .build();
+//        }
+//
+//        // 3. 为每个法律文档生成AI解析
+//        List<KnowledgeQueryResponseVO.LawDocumentWithAnalysis> documentsWithAnalysis = new java.util.ArrayList<>();
+//
+//        for (int i = 0; i < lawDocuments.size(); i++) {
+//            LawDocument doc = lawDocuments.get(i);
+//            log.info("正在为第{}个法条生成AI解析: {}第{}条", i + 1, doc.getLawName(), doc.getArticleNumber());
+//
+//            // 构建AI提示词
+//            String aiPrompt = buildAiPromptForSingleDocument(request.getQuestion(), doc);
+//
+//            // 调用AI服务进行解析
+//            String aiAnalysis = "";
+//            try {
+//                // 为每个法条使用同一个conversationId，保持上下文连贯性
+//                Flux<String> stream = aiKnowledgeService.chat(conversationId, aiPrompt);
+//                List<String> chunks = stream.collectList().block();
+//                aiAnalysis = String.join("", chunks);
+//                log.info("第{}个法条AI解析完成，长度: {}", i + 1, aiAnalysis.length());
+//            } catch (Exception e) {
+//                log.error("第{}个法条AI解析失败", i + 1, e);
+//              //  aiAnalysis = formatSingleLawDocumentAsText(doc) + "\n\nAI解析服务暂时不可用。";
+//            }
+//
+//            // 添加到结果列表
+//            documentsWithAnalysis.add(
+//                KnowledgeQueryResponseVO.LawDocumentWithAnalysis.builder()
+//                    .lawDocument(doc)
+//                    .aiAnalysis(aiAnalysis)
+//                    .build()
+//            );
+//        }
+//
+//        // 4. 保存搜索历史记录
+//        try {
+//            KnowledgeSearchRecord searchRecord = KnowledgeSearchRecord.builder()
+//                    .recordId(UUID.randomUUID().toString())
+//                    .userId(userId)
+//                    .question(request.getQuestion())
+//                    .conversationId(conversationId)
+//                    .lawCategoryId(request.getLawCategoryId())
+//                    .resultCount(documentsWithAnalysis.size())
+//                    .createTime(System.currentTimeMillis())
+//                    .updateTime(System.currentTimeMillis())
+//                    .build();
+//            knowledgeSearchHistoryService.saveSearchRecord(searchRecord);
+//            log.info("知识库搜索历史已保存，记录ID: {}", searchRecord.getRecordId());
+//        } catch (Exception e) {
+//            log.error("保存知识库搜索历史失败，但不影响查询结果返回", e);
+//        }
+//
+//        // 5. 构建响应
+//        return KnowledgeQueryResponseVO.builder()
+//                .conversationId(conversationId)
+//                .lawDocumentsWithAnalysis(documentsWithAnalysis)
+//                .timestamp(System.currentTimeMillis())
+//                .build();
+//    }
 
-            log.info("创建新对话id: {}", conversationId);
-        } else {
-            // 触碰现有对话，续期
-            conversationHistoryService.touch(userId, conversationId);
-            log.info("继续对话: {}", conversationId);
-        }
-        
+    @Override
+    public Map<Long, String> queryKnowledgeId(KnowledgeQueryRequestVO request) throws Exception {
         // 2. 从MeiliSearch搜索相关法律文档
         List<LawDocument> lawDocuments = knowledgeQueryRepository.searchLawDocuments(
                 request.getQuestion(),
                 request.getLawCategoryId(),
                 request.getLimit()
         );
-        
-        if (lawDocuments == null || lawDocuments.isEmpty()) {
-            log.warn("未找到相关法律文档");
-            return KnowledgeQueryResponseVO.builder()
-                    .conversationId(conversationId)
-                    .lawDocumentsWithAnalysis(List.of())
-                    .timestamp(System.currentTimeMillis())
-                    .build();
-        }
-        
-        // 3. 为每个法律文档生成AI解析
-        List<KnowledgeQueryResponseVO.LawDocumentWithAnalysis> documentsWithAnalysis = new java.util.ArrayList<>();
-        
-        for (int i = 0; i < lawDocuments.size(); i++) {
-            LawDocument doc = lawDocuments.get(i);
-            log.info("正在为第{}个法条生成AI解析: {}第{}条", i + 1, doc.getLawName(), doc.getArticleNumber());
-            
-            // 构建AI提示词
-            String aiPrompt = buildAiPromptForSingleDocument(request.getQuestion(), doc);
-            
-            // 调用AI服务进行解析
-            String aiAnalysis = "";
-            try {
-                // 为每个法条使用同一个conversationId，保持上下文连贯性
-                Flux<String> stream = aiKnowledgeService.chat(conversationId, aiPrompt);
-                List<String> chunks = stream.collectList().block();
-                aiAnalysis = String.join("", chunks);
-                log.info("第{}个法条AI解析完成，长度: {}", i + 1, aiAnalysis.length());
-            } catch (Exception e) {
-                log.error("第{}个法条AI解析失败", i + 1, e);
-              //  aiAnalysis = formatSingleLawDocumentAsText(doc) + "\n\nAI解析服务暂时不可用。";
-            }
-            
-            // 添加到结果列表
-            documentsWithAnalysis.add(
-                KnowledgeQueryResponseVO.LawDocumentWithAnalysis.builder()
-                    .lawDocument(doc)
-                    .aiAnalysis(aiAnalysis)
-                    .build()
-            );
-        }
-        
-        // 4. 保存搜索历史记录
-        try {
-            KnowledgeSearchRecord searchRecord = KnowledgeSearchRecord.builder()
-                    .recordId(UUID.randomUUID().toString())
-                    .userId(userId)
-                    .question(request.getQuestion())
-                    .conversationId(conversationId)
-                    .lawCategoryId(request.getLawCategoryId())
-                    .resultCount(documentsWithAnalysis.size())
-                    .createTime(System.currentTimeMillis())
-                    .updateTime(System.currentTimeMillis())
-                    .build();
-            knowledgeSearchHistoryService.saveSearchRecord(searchRecord);
-            log.info("知识库搜索历史已保存，记录ID: {}", searchRecord.getRecordId());
-        } catch (Exception e) {
-            log.error("保存知识库搜索历史失败，但不影响查询结果返回", e);
-        }
-        
-        // 5. 构建响应
-        return KnowledgeQueryResponseVO.builder()
-                .conversationId(conversationId)
-                .lawDocumentsWithAnalysis(documentsWithAnalysis)
-                .timestamp(System.currentTimeMillis())
-                .build();
-    }
-
-    @Override
-    public ArrayList<Integer> queryKnowledgeId(String userId, KnowledgeQueryRequestVO request) throws Exception {
-        // 2. 从MeiliSearch搜索相关法律文档
-        List<LawDocument> lawDocuments = knowledgeQueryRepository.searchLawDocuments(
-                request.getQuestion(),
-                request.getLawCategoryId(),
-                request.getLimit()
-        );
 
         if (lawDocuments == null || lawDocuments.isEmpty()) {
             log.warn("未找到相关法律文档");
-            return new ArrayList<>();
+            return Collections.emptyMap();
         }
-       ArrayList<Integer> arrayList= new ArrayList<>();
+        Map<Long, String> knowledgeMap = new HashMap<>();
         for (int i = 0; i < lawDocuments.size(); i++) {
             LawDocument doc = lawDocuments.get(i);
             // 添加到结果列表
-            arrayList.add(doc.getId());
+            knowledgeMap.put((long) doc.getId(), doc.getOriginalText());
         }
-        return arrayList;
+        return knowledgeMap;
     }
 
     /**

@@ -297,7 +297,7 @@ public class UserServiceImpl implements IUserService{
      * @param phone
      */
     @Override
-    public void sendVerifyCode(String phone) {
+    public void sendVerifyCode(String phone) throws Exception {
         log.info("用户发送验证码，手机号：{}", phone);
         // 校验手机号是否存在
         User user = userRepository.findUserByPhone(phone);
@@ -305,6 +305,7 @@ public class UserServiceImpl implements IUserService{
             throw new BusinessException("手机号不存在");
         }
         String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(SMS_CODE_EXPIRE_MINUTES));
+
         // 发送验证码
         log.info("发送验证码：{}", code);
 

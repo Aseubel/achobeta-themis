@@ -24,11 +24,12 @@ public class MeilisearchTool {
             "- arg0：字符串类型，提炼出的当前用户问题的问题标签；" +
             "- arg1：整数类型，问题分类标签（父标签），范围1-15；" +
             "缺失任何参数或格式错误会导致添加失败，请务必检查。")
-    public void addDocument(@P(value = "arg0 问题标签（提炼出的当前用户问题的问题标签）") String arg0,
+    public String addDocument(@P(value = "arg0 问题标签（提炼出的当前用户问题的问题标签）") String arg0,
                             @P(value = "arg1 问题分类标签（父标签）") int arg1) {
-        System.out.println("ai 开始添加文档到Meilisearch索引");
-        QuestionTitleDocument document = null;
         try {
+            System.out.println("ai 开始添加文档到Meilisearch索引");
+            QuestionTitleDocument document = null;
+
             document = QuestionTitleDocument.builder()
                     .id(UUID.randomUUID().toString())
                     .title(arg0)
@@ -37,9 +38,11 @@ public class MeilisearchTool {
                     .count(1)
                     .createTime(LocalDateTime.now())
                     .build();
+
+            meiliSearchUtils.addDocuments(QUESTION_TITLE_DOCUMENTS, Collections.singletonList(document));
         } catch (Exception e) {
-            throw new BusinessException("ai 添加文档到Meilisearch索引失败，参数错误：" + e.getMessage(), e);
+            return "添加文档到Meilisearch索引失败：" + e.getMessage();
         }
-        meiliSearchUtils.addDocuments(QUESTION_TITLE_DOCUMENTS, Collections.singletonList(document));
+        return "添加文档到Meilisearch索引成功";
     }
 }

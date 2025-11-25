@@ -184,7 +184,6 @@ public class ChatController {
      * 查询常问问题（二级标题）
      * @return
      */
-    @LoginRequired
     @GetMapping("/secondary_question_titles/{userType}")
     public ApiResponse<List<List<QuestionTitleResponseVO>>> searchQuestionTitles(@PathVariable("userType") @NotNull(message = "用户类型不能为空") Integer userType) {
         try {

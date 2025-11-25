@@ -138,13 +138,83 @@ public class LawGet {
                     .lawName(category.getLawName())
                     .categoryType(category.getCategoryType())
                     .regulations(regulationVOs)
+                    .totalCount(regulationVOs.size())
                     .build();
         }).collect(Collectors.toList());
         
         // 4. 返回分页结果
         return PageResponse.of(result, page, size, total);
     }
-
+    /**
+     * 查询具体法条
+     * 根据法律分类ID和条款号查询指定法条及其所属法律的所有条款
+     * 
+     * @param lawId 法律分类ID
+     * @param articleNumber 条款号（第n条）
+     * @return 法律分类及其所有条款信息，当前查询的条款会包含在列表中
+     */
+    @GetMapping("/law-regulation")
+    public ApiResponse<LawCategoryWithRegulationsVO> getLawRegulation(
+            @RequestParam(value = "lawId") Integer lawId,
+            @RequestParam(value = "articleNumber") Integer articleNumber
+    ) {
+        try {
+            log.info("查询具体法条 - 法律ID: {}, 条款号: {}", lawId, articleNumber);
+            
+            // 1. 查询法律分类信息
+            LawCategory lawCategory = lawCategoryMapper.selectById(lawId);
+            if (lawCategory == null) {
+                log.warn("未找到法律分类，lawId: {}", lawId);
+                return ApiResponse.error("未找到指定的法律分类");
+            }
+            
+            // 2. 查询指定的法条是否存在
+            LawRegulation targetRegulation = lawRegulationMapper.selectOne(
+                new LambdaQueryWrapper<LawRegulation>()
+                    .eq(LawRegulation::getLawCategoryId, lawId)
+                    .eq(LawRegulation::getArticleNumber, articleNumber)
+            );
+            
+            if (targetRegulation == null) {
+                log.warn("未找到指定法条 - 法律ID: {}, 条款号: {}", lawId, articleNumber);
+                return ApiResponse.error("未找到第 " + articleNumber + " 条法律条款");
+            }
+            
+            // 3. 查询该法律分类下的所有法条（按条款号排序）
+            List<LawRegulation> allRegulations = lawRegulationMapper.selectList(
+                new LambdaQueryWrapper<LawRegulation>()
+                    .eq(LawRegulation::getLawCategoryId, lawId)
+                    .orderByAsc(LawRegulation::getArticleNumber)
+            );
+            
+            // 4. 转换为VO
+            List<LawCategoryWithRegulationsVO.RegulationDetailVO> regulationVOs = allRegulations.stream()
+                .map(reg -> LawCategoryWithRegulationsVO.RegulationDetailVO.builder()
+                    .regulationId(reg.getRegulationId())
+                    .issueYear(reg.getIssueYear())
+                    .articleNumber(reg.getArticleNumber())
+                    .originalText(reg.getOriginalText())
+                    .build())
+                .collect(Collectors.toList());
+            
+            // 5. 构建响应对象
+            LawCategoryWithRegulationsVO result = LawCategoryWithRegulationsVO.builder()
+                .lawId(lawCategory.getLawId())
+                .lawName(lawCategory.getLawName())
+                .categoryType(lawCategory.getCategoryType())
+                .regulations(regulationVOs)
+                .totalCount(regulationVOs.size())
+                .build();
+            
+            log.info("成功查询法条 - 法律: {}, 条款号: {}, 总条款数: {}", 
+                lawCategory.getLawName(), articleNumber, result.getTotalCount());
+            
+            return ApiResponse.success(result);
+        } catch (Exception e) {
+            log.error("查询具体法条失败 - 法律ID: {}, 条款号: {}", lawId, articleNumber, e);
+            return ApiResponse.error("查询具体法条失败: " + e.getMessage());
+        }
+    }
     /**
      * 法律分类及其关联法条响应VO
      */
@@ -172,6 +242,11 @@ public class LawGet {
          * 关联的法律条文列表
          */
         private List<RegulationDetailVO> regulations;
+
+        /**
+         * 法律条文总数
+         */
+        private Integer totalCount;
 
         /**
          * 法律条文详情

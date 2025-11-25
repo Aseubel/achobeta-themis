@@ -84,18 +84,6 @@
             <artifactId>spring-boot-starter-security</artifactId>
             <version>2.7.0</version>
         </dependency>
-        <!-- 1. Aliyun SDK Core -->
-        <dependency>
-            <groupId>com.aliyun</groupId>
-            <artifactId>aliyun-java-sdk-core</artifactId>
-            <version>4.5.16</version>
-        </dependency>
-        <!-- 2. Aliyun SMS SDK -->
-        <dependency>
-            <groupId>com.aliyun</groupId>
-            <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
-            <version>2.1.0</version>
-        </dependency>
         <!-- langchain4j -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -175,6 +163,12 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.3</version>
+        </dependency>
+        <!-- OkHttp for Tavily API -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
         </dependency>
     </dependencies>
     <build>

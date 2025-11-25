@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -15,6 +17,7 @@ public class KnowledgeBaseReviewDTO {
     String lawName;
     String originalText;
     String aiTranslation;
+    String relatedRegulationList;
     String relevantCases;
     String relevantQuestions;
     Integer articleNumber;

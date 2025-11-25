@@ -3,6 +3,7 @@ package com.achobeta.themis.config;
 import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.agent.tool.MeilisearchTool;
+import com.achobeta.themis.common.agent.tool.TavilyTool;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.infrastructure.user.repo.RedisChatMemoryStore;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -30,6 +31,8 @@ public class AgentConfig {
     private RedisChatMemoryStore redisChatMemoryStore;
     @Autowired
     private MeilisearchTool meilisearchTool;
+    @Autowired
+    private TavilyTool tavilyTool;
 
 
 
@@ -65,33 +68,33 @@ public class AgentConfig {
                       }
                       return memory;
                 })
+                .tools(tavilyTool)  // 添加网络搜索工具，使 AI 具备联网能力
                 .build();
     }
 
+
     @Bean("Knowledge")
     public IAiKnowledgeService KnowledgeService() throws IOException {
-        // 读取 prompt-consulter.txt 文件
         ClassPathResource resource = new ClassPathResource("prompt-zhishiku.txt");
         String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
         log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
-
-        // 创建系统消息
         SystemMessage systemMessage = SystemMessage.from(systemPrompt);
-        OpenAiStreamingChatModel model = OpenAiStreamingChatModel.builder()
+        
+        OpenAiChatModel model = OpenAiChatModel.builder()
                 .baseUrl(agentConfigProperties.getBaseUrl())
                 .apiKey(agentConfigProperties.getApiKey())
                 .modelName(agentConfigProperties.getModel())
+                .logRequests(true)
+                .logResponses(true)
                 .build();
-
         return AiServices.builder(IAiKnowledgeService.class)
-                .streamingChatModel(model)
+                .chatModel(model)
                 .chatMemoryProvider(conversationId ->{
                     MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
                             .chatMemoryStore(redisChatMemoryStore)
                             .id(conversationId)
-                            .maxMessages(100)
+                            .maxMessages(2)
                             .build();
-
                     boolean hasSystemMessage = memory.messages().stream()
                             .anyMatch(msg -> msg instanceof SystemMessage);
                     if (!hasSystemMessage) {
@@ -99,6 +102,7 @@ public class AgentConfig {
                     }
                     return memory;
                 })
+                .tools(tavilyTool)  // 添加网络搜索工具
                 .build();
     }
     @Bean("adjudicator")
@@ -107,6 +111,7 @@ public class AgentConfig {
         String systemPrompt = resource.getContentAsString(StandardCharsets.UTF_8);
         log.info("成功加载系统提示词，长度: {} 字符", systemPrompt.length());
         SystemMessage systemMessage = SystemMessage.from(systemPrompt);
+        
         OpenAiChatModel model = OpenAiChatModel.builder()
                 .baseUrl(agentConfigProperties.getBaseUrl())
                 .apiKey(agentConfigProperties.getApiKey())
@@ -131,7 +136,7 @@ public class AgentConfig {
                     }
                     return memory;
                 })
-                .tools(meilisearchTool)
+                .tools(meilisearchTool, tavilyTool)  // 同时支持知识库搜索和网络搜索
                 .build();
         }
 

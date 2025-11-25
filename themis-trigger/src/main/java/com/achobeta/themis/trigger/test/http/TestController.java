@@ -5,6 +5,7 @@ import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.entity.Questions;
+import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
 import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
 import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
 import jakarta.validation.Valid;
@@ -39,27 +40,27 @@ public class TestController {
         return response;
     }
 
-    /**
-     * 插入二级标题测试数据进meilisearch
-     * @return
-     */
-    @GetMapping("/login-and-do-the-adding")
-    public ApiResponse<String> login() {
-        try {
-            // 从数据库中查找questions
-            List<Questions> questionDTOList = testService.queryQuestions();
-
-            for(int i = 0; i < questionDTOList.size(); i++){
-                Questions questionDTO = questionDTOList.get(i);
-                adjudicatorService.adjudicate(1, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
-                adjudicatorService.adjudicate(2, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
-            }
-            return ApiResponse.success("成 功");
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("用户登录失败", e);
-            return ApiResponse.error(e.getMessage());
-        }
-    }
+//    /**
+//     * 插入二级标题测试数据进meilisearch
+//     * @return
+//     */
+//    @GetMapping("/login-and-do-the-adding")
+//    public ApiResponse<String> login() {
+//        try {
+//            // 从数据库中查找questions
+//            List<QuestionsForDataInserted> questionDTOList = testService.queryQuestions();
+//
+//            for(int i = 0; i < questionDTOList.size(); i++){
+//                QuestionsForDataInserted questionDTO = questionDTOList.get(i);
+//                adjudicatorService.adjudicate(1, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
+//                adjudicatorService.adjudicate(2, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
+//            }
+//            return ApiResponse.success("成 功");
+//        } catch (BusinessException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("用户登录失败", e);
+//            return ApiResponse.error(e.getMessage());
+//        }
+//    }
 }
