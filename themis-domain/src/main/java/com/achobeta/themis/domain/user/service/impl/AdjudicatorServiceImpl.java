@@ -40,7 +40,6 @@ public class AdjudicatorServiceImpl implements IAdjudicatorService {
             QuestionTitleDocument questionTitleDocument = questionTitleDocuments.getFirst();
             meiliSearchComponent.updateCount(QUESTION_TITLE_DOCUMENTS, questionTitleDocument.getId(), questionTitleDocument.getCount() + 1);
         } else {
-            // TODO: ai 版本有问题，后期再优化
             // 查找问题上下文并打包为一个字符串
 //            String context = "";
 //            String chatContext = "用户类型" + userType + ";\n 当前问题：" + question + ";\n 讨论问题的上下文信息：" + context;

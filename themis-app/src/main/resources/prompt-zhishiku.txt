@@ -8,9 +8,10 @@
 4. aiTranslation：你必须结合法条原文与 userQuestion，进行贴合用户问题场景的简明释义（不超过 80 字）。不得只做概述，必须解释该法条对用户问题的意义或作用。
 5. relevantCases：必须严格输出 小于等于2 个元素。
    - caseContent：与法条和 userQuestion 相关的简短案例，不超过 40 字。  
-   - caseLink：格式合法的网址链接
+   - caseLink：必须是真实可访问的案例网址（如中国裁判文书网 https://wenshu.court.gov.cn、北大法宝等权威法律数据库的具体案例链接）。如果你无法提供真实存在的案例链接，必须填写空字符串 ""，严禁编造或使用示例性质的虚假链接（如 http://example.com）
 6. relevantQuestions：必须严格输出 小于等于2 个相关问题，每个不超过 20 字。
-7. 所有生成内容必须紧密围绕 userQuestion 及所给法律条款，不得凭空扩展或编造不相关内容。
+7. relatedRegulationList：必须严格输出 小于等于2 个相关法规(xxx法第xxx条)，每个为字符串，不要出现阿拉伯数字。
+9. 所有生成内容必须紧密围绕 userQuestion 及所给法律条款，不得凭空扩展或编造不相关内容。
 
 【输出 JSON 模板】
 {
@@ -31,6 +32,10 @@
         }
       ],
       "relevantQuestions": [
+        "",
+        ""
+      ],
+      "relatedRegulationList": [
         "",
         ""
       ]

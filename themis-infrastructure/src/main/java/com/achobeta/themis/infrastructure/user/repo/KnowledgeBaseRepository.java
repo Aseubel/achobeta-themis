@@ -1,6 +1,7 @@
 package com.achobeta.themis.infrastructure.user.repo;
 
 
+import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.entity.*;
 import com.achobeta.themis.domain.user.repo.IKnowledgeBaseRepository;
 import com.achobeta.themis.infrastructure.user.mapper.*;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,8 +31,16 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
      */
     @Override
     public Questions findQuestionByUserQuestionContent(String userQuestionContent) {
-        return questionMapper.selectOne(new LambdaQueryWrapper<Questions>()
-                .like(Questions::getQuestionContent, userQuestionContent));
+        try {
+            List<Questions> questionsList = questionMapper.selectList(new LambdaQueryWrapper<Questions>()
+                    .like(Questions::getQuestionContent, userQuestionContent));
+            if (questionsList.isEmpty()) {
+                return null;
+            }
+            return questionsList.getFirst();
+        } catch (Exception e) {
+            throw new RuntimeException("查询问题失败{}", e);
+        }
     }
 
     /**
@@ -66,18 +76,19 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
                 .eq(LawRegulations::getRegulationId, regulationID));
         LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
                 .eq(LawCategories::getLawId, lawRegulations.getLawCategoryId()));
-        QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
-                .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)
-                .eq(QuestionRegulationRelations::getRegulationId, regulationID));
         knowledgeBaseReviewDTO.setLawName(lawCategories.getLawName())
                 .setOriginalText(lawRegulations.getOriginalText())
                 .setArticleNumber(lawRegulations.getArticleNumber())
                 .setTotalArticles(lawCategories.getRelatedRegulationIds().size())
                 .setIssueYear(lawRegulations.getIssueYear());
         if (userQuestionId != null) {
+            QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
+                    .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)
+                    .eq(QuestionRegulationRelations::getRegulationId, regulationID));
             knowledgeBaseReviewDTO.setAiTranslation(questionRegulationRelations.getAiTranslation())
                     .setRelevantCases(questionRegulationRelations.getRelevantCases())
-                    .setRelevantQuestions(questionRegulationRelations.getRelevantQuestions());
+                    .setRelevantQuestions(questionRegulationRelations.getRelevantQuestions())
+                    .setRelatedRegulationList(questionRegulationRelations.getRelevantRegulations());
         }
         return knowledgeBaseReviewDTO;
     }

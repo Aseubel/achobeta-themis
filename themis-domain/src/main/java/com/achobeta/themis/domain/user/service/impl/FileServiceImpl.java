@@ -168,7 +168,7 @@ public class FileServiceImpl implements IFileService {
                 // 保存文件到OSS
                 ossPath = saveToOSS(file, conversationId + "." + contentType, conversationId);
             } catch (IOException e) {
-                throw new BusinessException("保存文件到本地失败", e);
+                throw new BusinessException("保存文件到OSS失败", e);
             }
             // 如果有数据更新文件路径，文件名
             if(fileRecord != null) {
@@ -216,6 +216,7 @@ public class FileServiceImpl implements IFileService {
 
     private ResourceMultipartFile wordGenerator(String conversationId, String content) {
         String WORD_SAVE_PATH = SYSTEM_LOCAL_PATH + File.separator + conversationId + ".docx";
+        System.out.println(WORD_SAVE_PATH);
         // 确保父目录存在
         if(!extracted(WORD_SAVE_PATH)) {
             throw new BusinessException("创建Word目录失败");

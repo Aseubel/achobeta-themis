@@ -28,6 +28,8 @@ public class QuestionRegulationRelations {
         private String relevantCases;
         @FieldDesc(name = "关联问题")
         private String relevantQuestions;
+        @FieldDesc(name = "关联法条")
+        private String relevantRegulations;
         @FieldDesc(name = "创建时间")
         private LocalDateTime createTime;
         @FieldDesc(name = "更新时间")
