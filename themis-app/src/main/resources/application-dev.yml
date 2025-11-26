@@ -77,8 +77,6 @@ aliyun:
     template-code: SMS_202308100000000000000000000000000
     sign-name: Achobeta
 
-
-
 logging:
   level:
     root: info
