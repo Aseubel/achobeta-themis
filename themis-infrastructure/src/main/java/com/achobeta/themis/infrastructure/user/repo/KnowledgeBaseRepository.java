@@ -70,16 +70,20 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
      * @return
      */
     @Override
-    public KnowledgeBaseReviewDTO findKnowledgeBaseReviewDetailsById(Long regulationID, Long userQuestionId) {
-        KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = new KnowledgeBaseReviewDTO();
+    public KnowledgeBaseReviewDTO findKnowledgeBaseReviewDetailsById(Long regulationID, Long userQuestionId) {KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = new KnowledgeBaseReviewDTO();
         LawRegulations lawRegulations = lawRegulationsMapper.selectOne(new LambdaQueryWrapper<LawRegulations>()
                 .eq(LawRegulations::getRegulationId, regulationID));
         LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
                 .eq(LawCategories::getLawId, lawRegulations.getLawCategoryId()));
+        
+        // 获取关联法条数量，防御性编程处理 null 情况
+        List<Integer> relatedRegulationIds = lawCategories.getRelatedRegulationIds();
+        int totalArticles = (relatedRegulationIds != null) ? relatedRegulationIds.size() : 0;
+        
         knowledgeBaseReviewDTO.setLawName(lawCategories.getLawName())
                 .setOriginalText(lawRegulations.getOriginalText())
                 .setArticleNumber(lawRegulations.getArticleNumber())
-                .setTotalArticles(lawCategories.getRelatedRegulationIds().size())
+                .setTotalArticles(totalArticles)
                 .setIssueYear(lawRegulations.getIssueYear());
         if (userQuestionId != null) {
             QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()

@@ -35,6 +35,13 @@ mybatis:
     map-underscore-to-camel-case: true
 #  config-location:  classpath:/mybatis/config/mybatis-config.xml
 
+## MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  type-handlers-package: com.achobeta.themis.domain.user.handler
+
 # 线程池配置
 thread:
   pool:
@@ -81,6 +88,10 @@ logging:
   level:
     root: info
   config: classpath:logback-spring.xml
+
+meilisearch:
+   host: http://8.134.200.160:17700/
+   api-key: xqVIYGKcaZxsBvzk7-HvPgcFwSG0MAHx0S9OfdwdAso
 
 # Tavily 搜索配置
 tavily:

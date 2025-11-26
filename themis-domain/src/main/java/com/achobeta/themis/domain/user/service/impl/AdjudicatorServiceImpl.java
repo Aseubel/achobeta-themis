@@ -30,9 +30,16 @@ public class AdjudicatorServiceImpl implements IAdjudicatorService {
 
     @Override
     public void adjudicate(Integer userType, String conversationId, String question) {
+        // 参数校验：如果问题为空，直接返回，不进行分类
+        if (question == null || question.trim().isEmpty()) {
+            return;
+        }
+        
         List<QuestionTitleDocument> questionTitleDocuments = null;
         try {
-            questionTitleDocuments = meiliSearchComponent.fuzzySearchFromQuestionTitle(QUESTION_TITLE_DOCUMENTS, IKPreprocessorUtil.segment(question, true), new String[]{"title_segmented"}, 1, QuestionTitleDocument.class);
+            // 使用 segment 方法，如果全是停用词会返回原文
+            String segmentedQuery = IKPreprocessorUtil.segment(question, true);
+            questionTitleDocuments = meiliSearchComponent.fuzzySearchFromQuestionTitle(QUESTION_TITLE_DOCUMENTS, segmentedQuery, new String[]{"title_segmented"}, 1, QuestionTitleDocument.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
