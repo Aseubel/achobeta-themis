@@ -94,7 +94,7 @@ logging:
 # Langchain4j 配置
 langchain4j:
   open-ai:
-    streaming-chat-model:
+    chat-model:
       base-url: ${CHAT_BASE_URL}
       api-key: ${OPENAI_API_KEY}
       model: ${CHAT_MODEL}
