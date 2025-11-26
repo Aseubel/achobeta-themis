@@ -76,11 +76,19 @@ public class ChatController {
             String userId = SecurityUtils.getCurrentUserId();
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步处理问题分类");
-                adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
+                try {
+                    adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
+                } catch (Exception e) {
+                    log.error("问题分类失败", e);
+                }
             });
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步触碰并续期对话历史");
-                conversationHistoryService.touch(userId, request.getConversationId());
+                try {
+                    conversationHistoryService.touch(userId, request.getConversationId());
+                } catch (Exception e) {
+                    log.error("触碰对话历史失败", e);
+                }
             });
             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
