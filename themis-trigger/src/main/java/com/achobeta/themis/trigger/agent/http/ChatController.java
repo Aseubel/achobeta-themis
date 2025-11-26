@@ -22,9 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -63,7 +65,7 @@ public class ChatController {
 
     }*/
     /**
-     * Ai问答聊天
+     * Ai问答聊天（阻塞式，返回完整响应）
      * @param request
      * @return
      */
@@ -74,11 +76,19 @@ public class ChatController {
             String userId = SecurityUtils.getCurrentUserId();
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步处理问题分类");
-                adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
+                try {
+                    adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
+                } catch (Exception e) {
+                    log.error("问题分类失败", e);
+                }
             });
             threadPoolTaskExecutor.execute(() -> {
                 log.info("异步触碰并续期对话历史");
-                conversationHistoryService.touch(userId, request.getConversationId());
+                try {
+                    conversationHistoryService.touch(userId, request.getConversationId());
+                } catch (Exception e) {
+                    log.error("触碰对话历史失败", e);
+                }
             });
             List<String> response = consulterService.chat(request.getConversationId(), request.getMessage()).collectList().block();
             String responseStr = String.join("", response);
@@ -88,6 +98,58 @@ public class ChatController {
         } catch (Exception e) {
             log.error("Ai问答聊天失败", e);
             return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Ai问答聊天（流式响应，SSE）
+     * @param request
+     * @return 流式响应
+     */
+    @LoginRequired
+    @PostMapping(value = "/consult/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> chatStream(@Valid @RequestBody ChatRequestVO request) {
+        try {
+            String userId = SecurityUtils.getCurrentUserId();
+            
+            // 异步处理问题分类
+            threadPoolTaskExecutor.execute(() -> {
+                log.info("异步处理问题分类");
+                try {
+                    adjudicatorService.adjudicate(request.getUserType(), request.getConversationId(), request.getMessage());
+                } catch (Exception e) {
+                    log.error("问题分类失败", e);
+                }
+            });
+            
+            // 异步触碰并续期对话历史
+            threadPoolTaskExecutor.execute(() -> {
+                log.info("异步触碰并续期对话历史");
+                try {
+                    conversationHistoryService.touch(userId, request.getConversationId());
+                } catch (Exception e) {
+                    log.error("触碰对话历史失败", e);
+                }
+            });
+            
+            log.info("开始流式响应，conversationId: {}, userId: {}", request.getConversationId(), userId);
+            
+            // 直接返回 Flux 流，Spring 会自动处理 SSE 传输
+            return consulterService.chat(request.getConversationId(), request.getMessage())
+                    .doOnNext(chunk -> log.debug("发送流式数据块: {}", chunk))
+                    .doOnComplete(() -> log.info("流式响应完成，conversationId: {}", request.getConversationId()))
+                    .doOnError(error -> log.error("流式响应错误，conversationId: {}", request.getConversationId(), error))
+                    .onErrorResume(error -> {
+                        log.error("流式响应发生错误", error);
+                        return Flux.just("错误: " + error.getMessage());
+                    });
+                    
+        } catch (BusinessException e) {
+            log.error("流式聊天业务异常", e);
+            return Flux.error(e);
+        } catch (Exception e) {
+            log.error("流式聊天失败", e);
+            return Flux.error(new RuntimeException("流式聊天失败: " + e.getMessage()));
         }
     }
 
