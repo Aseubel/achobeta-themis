@@ -94,7 +94,7 @@ logging:
 # Langchain4j 配置
 langchain4j:
   open-ai:
-    streaming-chat-model:
+    chat-model:
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
       api-key: ${OPENAI_API_KEY}
       model: qwen-plus
