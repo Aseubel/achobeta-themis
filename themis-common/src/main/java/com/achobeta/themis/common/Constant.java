@@ -24,16 +24,16 @@ public class Constant {
 
     // 系统文件路径 （Windows 下） #TODO Linux下需要修改
     public static final String[] SYSTEM_FONTS = {
-            "themis-common/src/main/resources/fronts/simsun.ttc",
+            "themis-common\\src\\main\\resources\\fronts\\simsun.ttc",
             "C:\\Windows\\Fonts\\simsun.ttc",
             "C:\\Windows\\Fonts\\simsun.ttf",
             "C:\\Windows\\Fonts\\msyh.ttf",
             "C:\\Windows\\Fonts\\simhei.ttf"
     };
-    public static final String SYSTEM_LOCAL_PATH = "D:" + File.separator + "A" + File.separator + "ruku" + File.separator + "upload";
+ //   public static final String SYSTEM_LOCAL_PATH = "D:" + File.separator + "A" + File.separator + "ruku" + File.separator + "upload";
 
 
-  //  public static final String SYSTEM_LOCAL_PATH = "/data/ruku/upload";  // Linux本地存储路径
+    public static final String SYSTEM_LOCAL_PATH = "/data/ruku/upload";  // Linux本地存储路径
 
     // meilisearch相关
      public static final String QUESTION_TITLE_DOCUMENTS = "question_title_documents";
