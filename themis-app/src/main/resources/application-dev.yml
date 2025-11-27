@@ -61,7 +61,7 @@ redis:
     config:
       host: 127.0.0.1
       port: 6379
-      password: 123456
+      password: Chenkun123
       pool-size: 10
       min-idle-size: 5
       idle-timeout: 30000
@@ -84,15 +84,24 @@ aliyun:
     template-code: SMS_202308100000000000000000000000000
     sign-name: Achobeta
 
+# MeiliSearch 配置
+meilisearch:
+  host: http://8.134.200.160:17700
+  api-key: ${MEILISEARCH_API_KEY}
+
 logging:
   level:
     root: info
   config: classpath:logback-spring.xml
 
+# Langchain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: ${OPENAI_API_KEY}
+      model: qwen-plus
 
-meilisearch:
-  host: http://8.134.200.160:17700/
-  api-key: xqVIYGKcaZxsBvzk7-HvPgcFwSG0MAHx0S9OfdwdAso
 # Tavily 搜索配置
 tavily:
   api-key: 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  # 请替换为你的 Tavily API Key
