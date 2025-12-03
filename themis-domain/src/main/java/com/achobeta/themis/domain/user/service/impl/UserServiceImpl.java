@@ -2,6 +2,7 @@ package com.achobeta.themis.domain.user.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.achobeta.themis.common.exception.BusinessException;
+import com.achobeta.themis.common.redis.service.IRedisService;
 import com.achobeta.themis.common.redis.service.RedissonService;
 import com.achobeta.themis.common.util.JwtUtil;
 import com.achobeta.themis.domain.user.model.vo.*;
@@ -20,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.achobeta.themis.common.Constant.SMS_CODE_EXPIRE_MINUTES;
 
 /**
  * @author Aseubel
@@ -36,7 +40,7 @@ public class UserServiceImpl implements IUserService{
 
     private final JwtUtil jwtUtil;
 
-    private final RedissonService redissonService;
+    private final IRedisService redissonService;
 
     private final IVerifyCodeService verifyCodeService;
 
@@ -44,6 +48,7 @@ public class UserServiceImpl implements IUserService{
 
     @Override
     public UserModel getUserByUserId(UserModel userModel) {
+        log.info("根据用户ID获取用户信息，用户ID：{}", userModel.getUser().getId());
         User user = userRepository.findUserByUserId(userModel.getUser().getId());
         UserModel result = UserModel.builder()
                 .user(user)
@@ -53,10 +58,14 @@ public class UserServiceImpl implements IUserService{
 
     @Override
     public UserModel getUserInfo(Long userId) {
+        log.info("根据用户ID获取用户信息，用户ID：{}", userId);
         if (ObjectUtil.isEmpty(userId)) {
             throw new BusinessException("用户ID不能为空");
         }
         User user = userRepository.findUserByUserId(userId);
+        if (ObjectUtil.isEmpty(user)) {
+            throw new BusinessException("用户不存在");
+        }
         UserModel result = UserModel.builder()
                 .user(user)
                 .build();
@@ -71,9 +80,10 @@ public class UserServiceImpl implements IUserService{
     @Transactional(rollbackFor = Exception.class)
     @Override
     public AuthResponseVO login(LoginRequestVO request) {
+        log.info("用户登录，手机号：{}", request.getPhone());
         User user = userRepository.findUserByPhone(request.getPhone());
         if (ObjectUtil.isEmpty(user)) {
-            // 注册用户
+            // 注册用户 TODO(后期可优化：限制注册频率)
             String lockKey = "user_sign_up:" + request.getPhone();
             RLock lock = redissonService.getLock(lockKey);
             boolean isLocked = false;
@@ -121,6 +131,7 @@ public class UserServiceImpl implements IUserService{
         redissonService.setMapExpired(userFreshTokensKey, jwtUtil.getRefreshTokenExpiration() + Duration.ofMinutes(1).toMillis());
 
         return AuthResponseVO.builder()
+                .id(user.getId())
                 .userId(user.getId().toString())
                 .username(user.getUsername())
                 .accessToken(accessToken)
@@ -135,6 +146,7 @@ public class UserServiceImpl implements IUserService{
      */
     @Override
     public AuthResponseVO refreshToken(String refreshToken) {
+        log.info("刷新访问令牌，刷新令牌：{}", refreshToken);
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new BusinessException("刷新令牌无效");
         }
@@ -168,11 +180,12 @@ public class UserServiceImpl implements IUserService{
     }
 
     /**
-     * 注销
+     * 登出
      * @param refreshToken
      */
     @Override
     public void logout(String refreshToken) {
+        log.info("用户注销，刷新令牌：{}", refreshToken);
         // 校验刷新令牌是否有效
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new BusinessException("刷新令牌无效");
@@ -187,11 +200,12 @@ public class UserServiceImpl implements IUserService{
     }
 
     /**
-     * 注销所有设备
+     * 登出所有设备
      * @param userId
      */
     @Override
     public void logoutAll(Long userId) {
+        log.info("用户登出所有设备，用户ID：{}", userId);
         User user = userRepository.findUserByUserId(userId);
         if (ObjectUtil.isEmpty(user)) {
             throw new BusinessException("用户不存在");
@@ -207,6 +221,7 @@ public class UserServiceImpl implements IUserService{
      */
     @Override
     public void changePassword(ChangePasswordRequestVO request) {
+        log.info("用户修改密码，用户ID：{}", request.getUserId());
         User user = userRepository.findUserByUserId(request.getUserId());
         if (ObjectUtil.isEmpty(user)) {
             throw new BusinessException("用户不存在");
@@ -216,7 +231,7 @@ public class UserServiceImpl implements IUserService{
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BusinessException("未登录或token无效，禁止访问！");
         }
-        Long currentUserId = (Long) authentication.getPrincipal();
+        Long currentUserId = (Long) ((Map<String, Object>) authentication.getPrincipal()).get("id");
         if (!currentUserId.equals(user.getId())) {
             throw new BusinessException("您没有权限修改其他用户的密码");
         }
@@ -233,6 +248,7 @@ public class UserServiceImpl implements IUserService{
      */
     @Override
     public void changeUsername(ChangeUsernameRequestVO request) {
+        log.info("用户修改用户名，用户ID：{}", request.getUserId());
         User user = userRepository.findUserByUserId(request.getUserId());
         if (ObjectUtil.isEmpty(user)) {
             throw new BusinessException("用户不存在");
@@ -242,7 +258,7 @@ public class UserServiceImpl implements IUserService{
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BusinessException("未登录或token无效，禁止访问！");
         }
-        Long currentUserId = (Long) authentication.getPrincipal();
+        Long currentUserId = (Long) ((Map<String, Object>) authentication.getPrincipal()).get("id");
         if (!currentUserId.equals(user.getId())) {
             throw new BusinessException("您没有权限修改其他用户的用户名");
         }
@@ -256,6 +272,7 @@ public class UserServiceImpl implements IUserService{
      */
     @Override
     public void forgetPassword(ForgetPasswdRequestVO request) {
+        log.info("用户忘记密码，手机号：{}", request.getPhone());
         // 校验验证码是否正确
         String verifyCodeKey = "verify_code:" + request.getPhone();
         String storedVerifyCode = redissonService.getValue(verifyCodeKey);
@@ -280,13 +297,15 @@ public class UserServiceImpl implements IUserService{
      * @param phone
      */
     @Override
-    public void sendVerifyCode(String phone) {
+    public void sendVerifyCode(String phone) throws Exception {
+        log.info("用户发送验证码，手机号：{}", phone);
         // 校验手机号是否存在
         User user = userRepository.findUserByPhone(phone);
         if (ObjectUtil.isEmpty(user)) {
             throw new BusinessException("手机号不存在");
         }
-        String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(1));
+        String code = verifyCodeService.generateAndStoreCode(phone, Duration.ofMinutes(SMS_CODE_EXPIRE_MINUTES));
+
         // 发送验证码
         log.info("发送验证码：{}", code);
 

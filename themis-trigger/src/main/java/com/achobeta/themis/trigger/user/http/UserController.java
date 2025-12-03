@@ -10,6 +10,7 @@ import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.domain.user.service.IUserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -71,7 +72,7 @@ public class UserController implements UserClient {
      * @return
      */
     @LoginRequired
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     public ApiResponse<String> logout(@NotBlank(message = "刷新令牌不能为空") @RequestParam("refreshToken") String refreshToken) {
         try {
             userService.logout(refreshToken);
@@ -85,13 +86,13 @@ public class UserController implements UserClient {
     }
 
     /**
-     * 批量注销用户所有登录会话
+     * 登出所有设备
      * @param userId
      * @return
      */
     @LoginRequired
-    @PostMapping("/logout-all")
-    public ApiResponse<String> logoutAll(@NotBlank(message = "用户id不能为空") @RequestParam("userId") Long userId) {
+    @DeleteMapping("/logout-all")
+    public ApiResponse<String> logoutAll(@NotNull(message = "用户id不能为空") @RequestParam("userId") Long userId) {
         try {
             userService.logoutAll(userId);
             return ApiResponse.success("批量注销成功");
@@ -144,7 +145,7 @@ public class UserController implements UserClient {
      * @param request
      * @return
      */
-    @PostMapping("/forget")
+    @PatchMapping("/forget")
     public ApiResponse<String> forgetPassword(@Valid @RequestBody ForgetPasswdRequestVO request) {
         try {
             userService.forgetPassword(request);
@@ -163,7 +164,7 @@ public class UserController implements UserClient {
      * @return
      */
      @LoginRequired
-     @PostMapping("/change-password")
+     @PatchMapping("/change-password")
      public ApiResponse<String> changePassword(@Valid @RequestBody ChangePasswordRequestVO request) {
         try {
             userService.changePassword(request);
@@ -181,7 +182,7 @@ public class UserController implements UserClient {
      * @param request
      */
      @LoginRequired
-     @PostMapping("/change-username")
+     @PatchMapping("/change-username")
      public ApiResponse<String> changeUsername(@Valid @RequestBody ChangeUsernameRequestVO request) {
         try {
             userService.changeUsername(request);

@@ -122,6 +122,23 @@ public class RedissonService implements IRedisService {
         list.add(value);
     }
 
+    @Override
+    public void setListExpired(String key, long expired) {
+        RList<String> list = redissonClient.getList(key);
+        list.expire(expired, TimeUnit.MILLISECONDS);
+    }
+
+     @Override
+    public List<String> getList(String key) {
+        RList<String> list = redissonClient.getList(key);
+        return list.readAll();
+    }
+
+    @Override
+    public void removeList(String key) {
+        redissonClient.getList(key).clear();
+    }
+
     public String getFromList(String key, int index) {
         RList<String> list = redissonClient.getList(key);
         return list.get(index);

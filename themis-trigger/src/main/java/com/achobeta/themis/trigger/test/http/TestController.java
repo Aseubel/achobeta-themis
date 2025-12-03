@@ -3,12 +3,20 @@ package com.achobeta.themis.trigger.test.http;
 import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
+import com.achobeta.themis.common.exception.BusinessException;
+import com.achobeta.themis.domain.user.model.entity.Questions;
+import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
+import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
+import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
+import jakarta.validation.Valid;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Aseubel
@@ -20,6 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TestController {
     private final UserClient userClient;
+    private final com.achobeta.themis.domain.user.service.IUserService userService;
+    private final com.achobeta.themis.domain.user.service.ITestService testService;
+    private final com.achobeta.themis.domain.user.service.IAdjudicatorService adjudicatorService;
 
     @GetMapping("/getUserInfo")
     public ApiResponse<UserInfoResponse> getUserInfo(@RequestParam("userId") Long userId) {
@@ -28,4 +39,28 @@ public class TestController {
         log.info("getUserInfo, response: {}", response);
         return response;
     }
+
+//    /**
+//     * 插入二级标题测试数据进meilisearch
+//     * @return
+//     */
+//    @GetMapping("/login-and-do-the-adding")
+//    public ApiResponse<String> login() {
+//        try {
+//            // 从数据库中查找questions
+//            List<QuestionsForDataInserted> questionDTOList = testService.queryQuestions();
+//
+//            for(int i = 0; i < questionDTOList.size(); i++){
+//                QuestionsForDataInserted questionDTO = questionDTOList.get(i);
+//                adjudicatorService.adjudicate(1, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
+//                adjudicatorService.adjudicate(2, UUID.randomUUID().toString(), questionDTO.getQuestionContent());
+//            }
+//            return ApiResponse.success("成 功");
+//        } catch (BusinessException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("用户登录失败", e);
+//            return ApiResponse.error(e.getMessage());
+//        }
+//    }
 }

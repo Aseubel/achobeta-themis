@@ -4,6 +4,7 @@ import com.achobeta.themis.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -93,7 +94,7 @@ public class GlobalExceptionHandler {
     /**
      * 处理参数校验异常
      */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler(exception = {MethodArgumentNotValidException.class})
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException e) {
         log.warn("参数校验异常: {}", e.getMessage());
         
@@ -148,6 +149,17 @@ public class GlobalExceptionHandler {
         result.put("success", false);
         result.put("code", 400);
         result.put("message", e.getMessage());
+        result.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.warn("请求体解析异常: {}", e.getMessage());
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("code", 400);
+        result.put("message", "请求体解析失败");
         result.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
