@@ -1,7 +1,6 @@
 package com.achobeta.themis.infrastructure.user.repo;
 
 
-import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.entity.*;
 import com.achobeta.themis.domain.user.repo.IKnowledgeBaseRepository;
 import com.achobeta.themis.infrastructure.user.mapper.*;
@@ -10,16 +9,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
     private final QuestionMapper questionMapper;
     private final QuestionRegulationRelationsMapper questionRegulationRelationsMapper;
-    private final LawRegulationsMapper lawRegulationsMapper;
+    private final LawRegulationMapper lawRegulationMapper;
     private final KnowledgeBaseMapper knowledgeBaseMapper;
-    private final LawCategoriesMapper lawCategoriesMapper;
+    private final LawCategoryMapper lawCategoriesMapper;
     private final SearchHistoryMapper searchHistoryMapper;
 
 
@@ -71,20 +69,20 @@ public class KnowledgeBaseRepository implements IKnowledgeBaseRepository {
      */
     @Override
     public KnowledgeBaseReviewDTO findKnowledgeBaseReviewDetailsById(Long regulationID, Long userQuestionId) {KnowledgeBaseReviewDTO knowledgeBaseReviewDTO = new KnowledgeBaseReviewDTO();
-        LawRegulations lawRegulations = lawRegulationsMapper.selectOne(new LambdaQueryWrapper<LawRegulations>()
-                .eq(LawRegulations::getRegulationId, regulationID));
-        LawCategories lawCategories = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategories>()
-                .eq(LawCategories::getLawId, lawRegulations.getLawCategoryId()));
-        
+        LawRegulation lawRegulation = lawRegulationMapper.selectOne(new LambdaQueryWrapper<LawRegulation>()
+                .eq(LawRegulation::getRegulationId, regulationID));
+        LawCategory lawCategory = lawCategoriesMapper.selectOne(new LambdaQueryWrapper<LawCategory>()
+                .eq(LawCategory::getLawId, lawRegulation.getLawCategoryId()));
+
         // 获取关联法条数量，防御性编程处理 null 情况
-        List<Integer> relatedRegulationIds = lawCategories.getRelatedRegulationIds();
+        List<Integer> relatedRegulationIds = lawCategory.getRelatedRegulationIds();
         int totalArticles = (relatedRegulationIds != null) ? relatedRegulationIds.size() : 0;
-        
-        knowledgeBaseReviewDTO.setLawName(lawCategories.getLawName())
-                .setOriginalText(lawRegulations.getOriginalText())
-                .setArticleNumber(lawRegulations.getArticleNumber())
+
+        knowledgeBaseReviewDTO.setLawName(lawCategory.getLawName())
+                .setOriginalText(lawRegulation.getOriginalText())
+                .setArticleNumber(lawRegulation.getArticleNumber())
                 .setTotalArticles(totalArticles)
-                .setIssueYear(lawRegulations.getIssueYear());
+                .setIssueYear(lawRegulation.getIssueYear());
         if (userQuestionId != null) {
             QuestionRegulationRelations questionRegulationRelations = questionRegulationRelationsMapper.selectOne(new LambdaQueryWrapper<QuestionRegulationRelations>()
                     .eq(QuestionRegulationRelations::getQuestionId, userQuestionId)

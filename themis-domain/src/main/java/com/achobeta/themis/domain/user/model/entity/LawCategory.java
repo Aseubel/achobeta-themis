@@ -1,11 +1,14 @@
 package com.achobeta.themis.domain.user.model.entity;
 
+import com.achobeta.themis.common.annotation.FieldDesc;
+import com.achobeta.themis.domain.user.handler.JsonListTypeHandler;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
+import org.apache.ibatis.type.JdbcType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,17 +17,19 @@ import java.util.List;
 @TableName(value = "law_categories", autoResultMap = true)
 public class LawCategory {
     @TableId(value = "law_id", type = IdType.AUTO)
-    private Integer lawId;
-    
+    @FieldDesc(name = "法律分类ID")
+    private Long lawId;
+    @FieldDesc(name = "法律分类名称")
     private String lawName;
-    
-    @TableField("category_type")
-    private Integer categoryType;
-    
-    @TableField(typeHandler = JacksonTypeHandler.class)
+    @FieldDesc(name = "关联法条ID列表")
+    @TableField(
+            value = "related_regulation_ids",
+            typeHandler = JsonListTypeHandler.class,
+            jdbcType = JdbcType.OTHER
+    )
     private List<Integer> relatedRegulationIds;
-    
+    @FieldDesc(name = "创建时间")
     private LocalDateTime createTime;
-    
+    @FieldDesc(name = "更新时间")
     private LocalDateTime updateTime;
 }

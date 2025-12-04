@@ -35,16 +35,15 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.meilisearch.sdk</groupId>
+            <artifactId>meilisearch-java</artifactId>
+        </dependency>
         <!-- domain不依赖任何非公共模块 -->
         <dependency>
             <groupId>com.achobeta</groupId>
             <artifactId>themis-common</artifactId>
             <version>${themis.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.meilisearch.sdk</groupId>
-            <artifactId>meilisearch-java</artifactId>
-            <version>0.16.0</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>

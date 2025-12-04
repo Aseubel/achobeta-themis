@@ -41,7 +41,7 @@ public class UserFavoriteRegulationVO {
     /**
      * 法律分类ID
      */
-    private Integer lawCategoryId;
+    private Long lawCategoryId;
 
     /**
      * 发布年月日
