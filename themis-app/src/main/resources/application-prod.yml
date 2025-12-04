@@ -35,6 +35,13 @@ mybatis:
     map-underscore-to-camel-case: true
 #  config-location:  classpath:/mybatis/config/mybatis-config.xml
 
+## MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  type-handlers-package: com.achobeta.themis.domain.user.handler
+
 # 线程池配置
 thread:
   pool:
@@ -62,7 +69,7 @@ redis:
       retry-interval: 1000
       ping-interval: 60000
       keep-alive: true
-      password: 123456
+      password: ${REDIS_PASSWORD}
 
 # JWT配置
 jwt:
@@ -72,13 +79,32 @@ jwt:
 
 # 阿里云短信配置
 aliyun:
-  access-key-id: ${aliyun-access-key-id}
-  access-key-secret: ${aliyun-access-key-secret}
-  template-code: ${aliyun-template-code}
-  sign-name: ${aliyun-sign-name}
+  sms:
+    access-key-id: ${aliyun-access-key-id}
+    access-key-secret: ${aliyun-access-key-secret}
+    template-code: ${aliyun-template-code}
+    sign-name: ${aliyun-sign-name}
 
 # 日志
 logging:
   level:
     root: info
   config: classpath:logback-spring.xml
+
+# Langchain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: ${CHAT_BASE_URL}
+      api-key: ${OPENAI_API_KEY}
+      model: ${CHAT_MODEL}
+
+# MeiliSearch 配置
+meilisearch:
+  host: http://localhost:7700
+  api-key: ${MEILISEARCH_API_KEY}
+
+# Tavily 搜索配置
+tavily:
+  api-key: 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  # 请替换为你的 Tavily API Key
+  api-url: https://api.tavily.com/search

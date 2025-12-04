@@ -1,0 +1,11 @@
+package com.achobeta.themis.domain.user.repo;
+
+import com.achobeta.themis.domain.user.model.entity.Questions;
+import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
+
+import java.util.List;
+
+public interface ITestRepository {
+     List<QuestionsForDataInserted> queryQuestions();
+
+}

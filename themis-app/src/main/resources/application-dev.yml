@@ -9,7 +9,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
+    url: jdbc:mysql://8.134.200.160:13306/themis?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC&useSSL=true
     username: root
     password: 123456
     hikari:
@@ -35,6 +35,13 @@ mybatis:
     map-underscore-to-camel-case: true
 #  config-location:  classpath:/mybatis/config/mybatis-config.xml
 
+## MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  type-handlers-package: com.achobeta.themis.domain.user.handler
+
 # 线程池配置
 thread:
   pool:
@@ -54,7 +61,7 @@ redis:
     config:
       host: 127.0.0.1
       port: 6379
-      password: 123456
+      password: Chenkun123
       pool-size: 10
       min-idle-size: 5
       idle-timeout: 30000
@@ -71,12 +78,31 @@ jwt:
   refresh-token-expiration: 604800000 # 7天 (毫秒)
 
 aliyun:
-  access-key-id: LTAI5tF3h1234567890
-  access-key-secret: 1234567890abcdef1234567890abcdef
-  template-code: SMS_202308100000000000000000000000000
-  sign-name: Achobeta
+  sms:
+    access-key-id: LTAI5tF3h1234567890
+    access-key-secret: 1234567890abcdef1234567890abcdef
+    template-code: SMS_202308100000000000000000000000000
+    sign-name: Achobeta
+
+# MeiliSearch 配置
+meilisearch:
+  host: http://8.134.200.160:17700
+  api-key: ${MEILISEARCH_API_KEY}
 
 logging:
   level:
     root: info
   config: classpath:logback-spring.xml
+
+# Langchain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: ${OPENAI_API_KEY}
+      model: qwen-plus
+
+# Tavily 搜索配置
+tavily:
+  api-key: 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  # 请替换为你的 Tavily API Key
+  api-url: https://api.tavily.com/search

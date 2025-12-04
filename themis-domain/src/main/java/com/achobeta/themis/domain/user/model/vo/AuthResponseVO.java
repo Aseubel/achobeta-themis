@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthResponseVO {
+        private Long id;
         private String userId;
         private String username;
         private String accessToken;

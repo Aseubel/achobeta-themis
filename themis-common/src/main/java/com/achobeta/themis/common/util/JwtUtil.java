@@ -188,9 +188,13 @@ public class JwtUtil {
      * @param accessToken
      */
     public void saveUserInfoToSecurityContext(String accessToken) {
-        Long userId = getUserIdFromToken(accessToken);
-        if (userId != null) {
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList()));
+        Long id = getUserIdFromToken(accessToken);
+        String userId = String.format("%06d", id);
+        Map<String, Object> details = new HashMap<>();
+        details.put("userId", userId);
+        details.put("id", id);
+        if (id != null) {
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(details, null, Collections.emptyList()));
         }
     }
 }
