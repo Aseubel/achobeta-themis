@@ -124,7 +124,7 @@ public class LawDataFixController {
             }
             
             // 2. 创建分类映射
-            Map<Integer, LawCategory> categoryMap = new HashMap<>();
+            Map<Long, LawCategory> categoryMap = new HashMap<>();
             for (LawCategory category : categories) {
                 categoryMap.put(category.getLawId(), category);
             }

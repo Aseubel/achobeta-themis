@@ -1,9 +1,6 @@
-package com.achobeta.themis.domain.user.service;
+package com.achobeta.themis.domain.review.service;
 
 import org.springframework.core.io.Resource;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 public interface IFileService {
     /**

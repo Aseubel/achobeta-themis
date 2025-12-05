@@ -1,7 +1,7 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.review.service.impl;
 
 import com.achobeta.themis.common.redis.service.IRedisService;
-import com.achobeta.themis.domain.user.service.IFileReviewHistoryService;
+import com.achobeta.themis.domain.review.service.IFileReviewHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

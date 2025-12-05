@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.vo;
+package com.achobeta.themis.api.review.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

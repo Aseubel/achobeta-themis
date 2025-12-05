@@ -1,7 +1,6 @@
 package com.achobeta.themis.trigger.meilisearch.http;
 
 import com.achobeta.themis.common.component.entity.LawDocument;
-import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.achobeta.themis.domain.user.model.entity.LawCategory;
 import com.achobeta.themis.domain.user.model.entity.LawRegulation;
 import com.achobeta.themis.infrastructure.user.mapper.LawCategoryMapper;
@@ -97,9 +96,9 @@ public class LawDataDebugController {
         try {
             // 创建测试文档
             LawDocument testDoc = LawDocument.builder()
-                    .id(99999)
+                    .id(99999L)
                     .lawName("测试法律")
-                    .lawCategoryId(1)
+                    .lawCategoryId(1L)
                     .articleNumber(1)
                     .originalText("这是一条测试法条")
                     .originalTextSegmented("这是 一条 测试 法条")

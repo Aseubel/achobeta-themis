@@ -1,7 +1,7 @@
 package com.achobeta.themis.infrastructure.user.repo;
 
-import com.achobeta.themis.domain.user.model.entity.FileRecord;
-import com.achobeta.themis.domain.user.repo.IFileRepository;
+import com.achobeta.themis.domain.review.model.entity.FileRecord;
+import com.achobeta.themis.domain.review.repo.IFileRepository;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

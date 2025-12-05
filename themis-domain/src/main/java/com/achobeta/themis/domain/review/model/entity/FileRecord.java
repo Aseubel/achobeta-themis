@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.entity;
+package com.achobeta.themis.domain.review.model.entity;
 
 import com.achobeta.themis.common.annotation.FieldDesc;
 import com.baomidou.mybatisplus.annotation.IdType;

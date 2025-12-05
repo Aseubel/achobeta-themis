@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.entity;
+package com.achobeta.themis.domain.review.model.entity;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.ByteArrayResource;
@@ -6,8 +6,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Spring Boot 3 推荐的 MultipartFile 实现

@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.entity;
+package com.achobeta.themis.api.review.request;
 
 import lombok.Data;
 

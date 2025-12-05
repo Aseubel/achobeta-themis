@@ -1,12 +1,12 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.review.service.impl;
 
 import com.achobeta.themis.common.Constant;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.util.AliOSSUtil;
-import com.achobeta.themis.domain.user.model.entity.FileRecord;
-import com.achobeta.themis.domain.user.model.entity.ResourceMultipartFile;
-import com.achobeta.themis.domain.user.repo.IFileRepository;
-import com.achobeta.themis.domain.user.service.IFileService;
+import com.achobeta.themis.domain.review.model.entity.FileRecord;
+import com.achobeta.themis.domain.review.model.entity.ResourceMultipartFile;
+import com.achobeta.themis.domain.review.repo.IFileRepository;
+import com.achobeta.themis.domain.review.service.IFileService;
 import com.aliyuncs.exceptions.ClientException;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +15,6 @@ import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.aspectj.apache.bcel.util.ClassPath;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -32,12 +30,10 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.TextAlignment;
 
 
-import javax.swing.text.html.Option;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,7 +41,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.achobeta.themis.common.Constant.*;

@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.service;
+package com.achobeta.themis.domain.review.service;
 
 import java.util.List;
 

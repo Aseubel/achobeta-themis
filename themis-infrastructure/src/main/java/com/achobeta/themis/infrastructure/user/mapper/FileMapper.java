@@ -1,6 +1,6 @@
 package com.achobeta.themis.infrastructure.user.mapper;
 
-import com.achobeta.themis.domain.user.model.entity.FileRecord;
+import com.achobeta.themis.domain.review.model.entity.FileRecord;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
