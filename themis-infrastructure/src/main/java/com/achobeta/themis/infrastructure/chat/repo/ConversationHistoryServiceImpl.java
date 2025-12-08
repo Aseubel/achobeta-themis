@@ -2,7 +2,7 @@ package com.achobeta.themis.infrastructure.chat.repo;
 
 import com.achobeta.themis.common.redis.service.IRedisService;
 import com.achobeta.themis.domain.chat.model.entity.ConversationMeta;
-import com.achobeta.themis.domain.user.service.IConversationHistoryService;
+import com.achobeta.themis.domain.chat.service.IConversationHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

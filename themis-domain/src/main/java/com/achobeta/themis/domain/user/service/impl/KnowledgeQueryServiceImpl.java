@@ -3,7 +3,7 @@ package com.achobeta.themis.domain.user.service.impl;
 import com.achobeta.themis.common.component.entity.LawDocument;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
 import com.achobeta.themis.domain.laws.repo.IKnowledgeQueryRepository;
-import com.achobeta.themis.domain.user.service.IConversationHistoryService;
+import com.achobeta.themis.domain.chat.service.IConversationHistoryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeQueryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeSearchHistoryService;
 import lombok.RequiredArgsConstructor;

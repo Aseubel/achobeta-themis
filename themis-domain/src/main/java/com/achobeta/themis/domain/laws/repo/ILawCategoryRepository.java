@@ -33,4 +33,13 @@ public interface ILawCategoryRepository {
      * @param id 法律类别ID
      */
     void delete(Long id);
+
+    /**
+     * 根据条件查询法律类别列表
+     * @param categoryType 法律类别类型
+     * @param page 页码
+     * @param size 每页数量
+     * @return 法律类别列表
+     */
+    List<LawCategory> listLawCategoriesConditional(Long categoryType, Integer page, Integer size);
 }

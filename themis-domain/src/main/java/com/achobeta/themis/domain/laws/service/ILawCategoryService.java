@@ -14,4 +14,5 @@ public interface ILawCategoryService {
      * @return 法律类别列表
      */
     List<LawCategory> queryLawCategoryList();
+
 }

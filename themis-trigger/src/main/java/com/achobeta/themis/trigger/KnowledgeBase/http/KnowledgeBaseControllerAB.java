@@ -5,7 +5,7 @@ import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.laws.model.entity.KnowledgeSearchRecord;
-import com.achobeta.themis.domain.user.service.IConversationHistoryService;
+import com.achobeta.themis.domain.chat.service.IConversationHistoryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeQueryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeSearchHistoryService;
 import lombok.RequiredArgsConstructor;

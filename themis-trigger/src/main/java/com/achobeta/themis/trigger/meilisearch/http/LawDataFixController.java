@@ -4,8 +4,6 @@ import com.achobeta.themis.common.component.entity.LawDocument;
 import com.achobeta.themis.common.util.IKPreprocessorUtil;
 import com.achobeta.themis.domain.laws.model.entity.LawCategory;
 import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
-import com.achobeta.themis.domain.laws.repo.ILawCategoryRepository;
-import com.achobeta.themis.domain.laws.repo.ILawRegulationRepository;
 import com.achobeta.themis.domain.laws.service.ILawCategoryService;
 import com.achobeta.themis.domain.laws.service.ILawRegulationService;
 import com.alibaba.fastjson.JSON;
