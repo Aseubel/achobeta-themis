@@ -1,6 +1,6 @@
 package com.achobeta.themis.domain.user.service;
 
-import com.achobeta.themis.domain.user.model.entity.KnowledgeSearchRecord;
+import com.achobeta.themis.domain.laws.model.entity.KnowledgeSearchRecord;
 
 import java.util.List;
 

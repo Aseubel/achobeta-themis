@@ -2,10 +2,10 @@ package com.achobeta.themis.trigger.meilisearch.http;
 
 import com.achobeta.themis.common.component.entity.LawDocument;
 import com.achobeta.themis.common.util.IKPreprocessorUtil;
-import com.achobeta.themis.domain.user.model.entity.LawCategory;
-import com.achobeta.themis.domain.user.model.entity.LawRegulation;
-import com.achobeta.themis.infrastructure.user.mapper.LawCategoryMapper;
-import com.achobeta.themis.infrastructure.user.mapper.LawRegulationMapper;
+import com.achobeta.themis.domain.laws.model.entity.LawCategory;
+import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
+import com.achobeta.themis.domain.laws.repo.ILawCategoryRepository;
+import com.achobeta.themis.domain.laws.repo.ILawRegulationRepository;
 import com.alibaba.fastjson.JSON;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Index;
@@ -14,9 +14,15 @@ import com.meilisearch.sdk.model.Task;
 import com.meilisearch.sdk.model.TaskInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -25,8 +31,8 @@ import java.util.*;
 public class LawDataFixController {
     
     private final Client meiliSearchClient;
-    private final LawCategoryMapper lawCategoryMapper;
-    private final LawRegulationMapper lawRegulationMapper;
+    private final ILawCategoryRepository lawCategoryRepository;
+    private final ILawRegulationRepository lawRegulationRepository;
     
     /**
      * 检查索引配置
@@ -114,8 +120,8 @@ public class LawDataFixController {
             log.info("开始重新导入数据...");
             
             // 1. 查询数据
-            List<LawCategory> categories = lawCategoryMapper.selectList(null);
-            List<LawRegulation> regulations = lawRegulationMapper.selectList(null);
+            List<LawCategory> categories = lawCategoryRepository.listLawCategories();
+            List<LawRegulation> regulations = lawRegulationRepository.listLawRegulations();
             
             if (categories == null || categories.isEmpty() || regulations == null || regulations.isEmpty()) {
                 result.put("状态", "失败");
@@ -205,15 +211,15 @@ public class LawDataFixController {
         
         try {
             // 1. 查询数据库数据
-            List<LawCategory> categories = lawCategoryMapper.selectList(null);
-            List<LawRegulation> regulations = lawRegulationMapper.selectList(null);
+            List<LawCategory> categories = lawCategoryRepository.listLawCategories();
+            List<LawRegulation> regulations = lawRegulationRepository.listLawRegulations();
             
             // 2. 统计数据
             long nationalCategories = categories.stream().filter(c -> c.getCategoryType() == 1).count();
             long localCategories = categories.stream().filter(c -> c.getCategoryType() == 0).count();
             
             // 3. 检查关联关系
-            Map<Integer, LawCategory> categoryMap = new HashMap<>();
+            Map<Long, LawCategory> categoryMap = new HashMap<>();
             for (LawCategory category : categories) {
                 categoryMap.put(category.getLawId(), category);
             }

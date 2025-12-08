@@ -7,7 +7,6 @@ import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
 import com.achobeta.themis.domain.user.service.IKnowledgeBaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

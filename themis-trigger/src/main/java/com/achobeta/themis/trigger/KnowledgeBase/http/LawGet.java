@@ -2,10 +2,10 @@ package com.achobeta.themis.trigger.KnowledgeBase.http;
 
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.PageResponse;
-import com.achobeta.themis.domain.user.model.entity.LawCategory;
-import com.achobeta.themis.domain.user.model.entity.LawRegulation;
-import com.achobeta.themis.infrastructure.user.mapper.LawCategoryMapper;
-import com.achobeta.themis.infrastructure.user.mapper.LawRegulationMapper;
+import com.achobeta.themis.domain.laws.model.entity.LawCategory;
+import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
+import com.achobeta.themis.infrastructure.laws.mapper.LawCategoryMapper;
+import com.achobeta.themis.infrastructure.laws.mapper.LawRegulationMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -125,7 +125,7 @@ public class LawGet {
             if (regulations != null && !regulations.isEmpty()) {
                 regulationVOs = regulations.stream()
                     .map(reg -> LawCategoryWithRegulationsVO.RegulationDetailVO.builder()
-                        .regulationId(reg.getRegulationId())
+                        .regulationId(Math.toIntExact(reg.getRegulationId()))
                         .issueYear(reg.getIssueYear())
                         .articleNumber(reg.getArticleNumber())
                         .originalText(reg.getOriginalText())
@@ -134,7 +134,7 @@ public class LawGet {
             }
             
             return LawCategoryWithRegulationsVO.builder()
-                    .lawId(category.getLawId())
+                    .lawId(Math.toIntExact(category.getLawId()))
                     .lawName(category.getLawName())
                     .categoryType(category.getCategoryType())
                     .regulations(regulationVOs)
@@ -190,7 +190,7 @@ public class LawGet {
             // 4. 转换为VO
             List<LawCategoryWithRegulationsVO.RegulationDetailVO> regulationVOs = allRegulations.stream()
                 .map(reg -> LawCategoryWithRegulationsVO.RegulationDetailVO.builder()
-                    .regulationId(reg.getRegulationId())
+                    .regulationId(Math.toIntExact(reg.getRegulationId()))
                     .issueYear(reg.getIssueYear())
                     .articleNumber(reg.getArticleNumber())
                     .originalText(reg.getOriginalText())
@@ -199,7 +199,7 @@ public class LawGet {
             
             // 5. 构建响应对象
             LawCategoryWithRegulationsVO result = LawCategoryWithRegulationsVO.builder()
-                .lawId(lawCategory.getLawId())
+                .lawId(Math.toIntExact(lawCategory.getLawId()))
                 .lawName(lawCategory.getLawName())
                 .categoryType(lawCategory.getCategoryType())
                 .regulations(regulationVOs)

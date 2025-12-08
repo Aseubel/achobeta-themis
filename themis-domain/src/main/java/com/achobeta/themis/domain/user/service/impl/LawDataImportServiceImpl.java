@@ -1,6 +1,6 @@
 package com.achobeta.themis.domain.user.service.impl;
 
-import com.achobeta.themis.domain.user.repo.ILawDataImportRepository;
+import com.achobeta.themis.domain.laws.repo.ILawDataImportRepository;
 import com.achobeta.themis.domain.user.service.ILawDataImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

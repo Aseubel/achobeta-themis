@@ -1,8 +1,7 @@
 package com.achobeta.themis.domain.user.service;
 
-import com.achobeta.themis.domain.user.model.entity.ConversationMeta;
+import com.achobeta.themis.domain.chat.model.entity.ConversationMeta;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IConversationHistoryService {

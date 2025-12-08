@@ -1,20 +1,14 @@
 package com.achobeta.themis.domain.user.service.impl;
 
-import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.component.entity.LawDocument;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
-import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryResponseVO;
-import com.achobeta.themis.domain.user.repo.IKnowledgeQueryRepository;
-import com.achobeta.themis.domain.user.model.entity.KnowledgeSearchRecord;
+import com.achobeta.themis.domain.laws.repo.IKnowledgeQueryRepository;
 import com.achobeta.themis.domain.user.service.IConversationHistoryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeQueryService;
 import com.achobeta.themis.domain.user.service.IKnowledgeSearchHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.stream.Collectors;
