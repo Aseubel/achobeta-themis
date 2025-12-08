@@ -1,6 +1,6 @@
 package com.achobeta.themis.domain.user.service.impl;
 
-import com.achobeta.themis.domain.user.model.entity.LawRegulation;
+import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
 import com.achobeta.themis.domain.user.model.vo.UserFavoriteRegulationVO;
 import com.achobeta.themis.domain.user.repo.IUserFavoriteRegulationRepository;
 import com.achobeta.themis.domain.user.service.IUserFavoriteRegulationService;

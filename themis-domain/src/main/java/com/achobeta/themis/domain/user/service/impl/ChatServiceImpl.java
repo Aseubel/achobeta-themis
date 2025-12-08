@@ -5,7 +5,7 @@ import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
 import com.achobeta.themis.common.constants.PrimaryTagEnum;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
-import com.achobeta.themis.domain.user.service.IChatService;
+import com.achobeta.themis.domain.chat.service.IChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -3,20 +3,9 @@ package com.achobeta.themis.trigger.test.http;
 import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.exception.BusinessException;
-import com.achobeta.themis.domain.user.model.entity.Questions;
-import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
-import com.achobeta.themis.domain.user.model.vo.AuthResponseVO;
-import com.achobeta.themis.domain.user.model.vo.LoginRequestVO;
-import jakarta.validation.Valid;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * @author Aseubel

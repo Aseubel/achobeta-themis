@@ -1,42 +1,34 @@
 package com.achobeta.themis.trigger.file.http;
 
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.agent.service.IAiChatService;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.user.model.UserModel;
-import com.achobeta.themis.domain.user.model.entity.ReviewRequest;
-import com.achobeta.themis.domain.user.model.entity.ReviewResult;
-import com.achobeta.themis.domain.user.model.entity.User;
-import com.achobeta.themis.domain.user.model.entity.fileReturn;
+import com.achobeta.themis.api.review.request.ReviewRequest;
+import com.achobeta.themis.api.review.response.ReviewResult;
+import com.achobeta.themis.api.review.response.fileReturn;
 import com.achobeta.themis.domain.user.model.vo.ChatHistoryVO;
-import com.achobeta.themis.domain.user.model.vo.DownLoadFileRequest;
-import com.achobeta.themis.domain.user.model.vo.FileReviewRecordVO;
-import com.achobeta.themis.domain.user.model.vo.SaveFileReviewRecordRequestVO;
-import com.achobeta.themis.domain.user.service.IFileReviewHistoryService;
-import com.achobeta.themis.domain.user.service.IFileService;
+import com.achobeta.themis.api.review.request.DownLoadFileRequest;
+import com.achobeta.themis.api.review.response.FileReviewRecordVO;
+import com.achobeta.themis.api.review.request.SaveFileReviewRecordRequestVO;
+import com.achobeta.themis.domain.review.service.IFileReviewHistoryService;
+import com.achobeta.themis.domain.review.service.IFileService;
 import com.achobeta.themis.domain.user.service.IUserService;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,12 +38,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +46,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
 @LoginRequired
 @Slf4j
 @Validated
@@ -80,14 +68,16 @@ public class FileController {
     private static final int MAX_TEXT_LENGTH = 20000;
 
     private static final Map<String, MediaType> CONTENT_TYPE_MAP = new HashMap<>();
+
     static {
         CONTENT_TYPE_MAP.put("application/pdf", MediaType.APPLICATION_PDF);
         CONTENT_TYPE_MAP.put("docx", MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
     }
 
-/**
-* 提交内容审查
-* */
+    /**
+     * 提交内容审查
+     *
+     */
     @PostMapping(value = "/review")
     public ApiResponse<ReviewResult> review(
             @RequestBody ReviewRequest request
@@ -106,30 +96,32 @@ public class FileController {
                 text = text.substring(0, MAX_TEXT_LENGTH);
             }
 
-            Long id= SecurityUtils.getId();
+            Long id = SecurityUtils.getId();
             UserModel userModel = userService.getUserInfo(id);
             Integer userType = userModel.getUser().getUserType();
-            String prompt = buildReviewPrompt(fileName, text,userType);
+            String prompt = buildReviewPrompt(fileName, text, userType);
             Flux<String> stream = chatService.chat(conversationId, prompt);
             List<String> chunks = stream.collectList().block();
             String review = String.join("", chunks);
 
             return ApiResponse.success(
-                    new ReviewResult(conversationId,fileName, review));
+                    new ReviewResult(conversationId, fileName, review));
         } catch (BusinessException e) {
-        throw e;
-    } catch (Exception e) {
-        log.error("对话失败", e);
-        return ApiResponse.error(e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("对话失败", e);
+            return ApiResponse.error(e.getMessage());
 
+        }
     }
-    }
-  /**
-  * 解析文件中的文字内容并返回*/
+
+    /**
+     * 解析文件中的文字内容并返回
+     */
     @PostMapping(value = "/upAndwrite", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<fileReturn> upAndwrite(
             @RequestParam("file") MultipartFile file
-           // @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
+            // @RequestParam("conversationId") @NotBlank(message = "对话ID不能为空") String conversationId
     ) throws TikaException, IOException, SAXException {
         try {
             if (file.isEmpty()) {
@@ -171,15 +163,19 @@ public class FileController {
 
         }
     }
+
     /**
      * 获取对话ID
-    * */
+     *
+     */
     @PostMapping("/review/getId")
     private String getConversationId() {
         return UUID.randomUUID().toString();
     }
+
     /**
      * 保存审查记录
+     *
      * @return 新生成的记录ID
      */
     @PostMapping("/review/record")
@@ -187,14 +183,16 @@ public class FileController {
             @Valid @RequestBody SaveFileReviewRecordRequestVO request,
             @RequestParam("flag") boolean flag
 
-         //  @RequestParam("userId") Long userId
+            //  @RequestParam("userId") Long userId
     ) {
-       if(!flag){return ApiResponse.success("不保存");}
+        if (!flag) {
+            return ApiResponse.success("不保存");
+        }
         try {
             String userId = SecurityUtils.getCurrentUserId();
             String recordId = request.getRecordId();
             if (recordId == null || recordId.isBlank()) {
-               throw new BusinessException("记录ID不能为空");
+                throw new BusinessException("记录ID不能为空");
             }
             long currentTime = System.currentTimeMillis();
 
@@ -220,14 +218,15 @@ public class FileController {
 
     /**
      * 获取用户的文件审查记录列表
+     *
      * @return 审查记录列表
      */
     @GetMapping("/review/records")
     public ApiResponse<FileReviewRecordVO.ReviewRecordListVO> getReviewRecords(
-          //  @RequestParam("userId") Long userId
+            //  @RequestParam("userId") Long userId
     ) {
         try {
-           String userId = SecurityUtils.getCurrentUserId();
+            String userId = SecurityUtils.getCurrentUserId();
             List<IFileReviewHistoryService.ReviewRecord> records =
                     fileReviewHistoryService.getUserReviewRecords(userId);
 
@@ -254,13 +253,14 @@ public class FileController {
 
     /**
      * 获取指定的审查记录详情
+     *
      * @param recordId 记录ID
      * @return 审查记录详情
      */
     @GetMapping("/review/record")
     public ApiResponse<FileReviewRecordVO> getReviewRecord(
             @RequestParam("recordId") @NotBlank(message = "记录ID不能为空") String recordId
-             // @RequestParam("userId") Long userId
+            // @RequestParam("userId") Long userId
     ) {
         try {
             String userId = SecurityUtils.getCurrentUserId();
@@ -291,6 +291,7 @@ public class FileController {
 
     /**
      * 删除审查记录
+     *
      * @param recordId 记录ID
      * @return
      */
@@ -313,6 +314,7 @@ public class FileController {
 
     /**
      * 下载文件
+     *
      * @param request 下载文件请求参数
      * @return 下载url
      */
@@ -409,8 +411,6 @@ public class FileController {
         }
         return message.toString();
     }
-
-
 
 
 }

@@ -1,7 +1,6 @@
 package com.achobeta.themis.infrastructure.user.repo;
 
-import com.achobeta.themis.domain.user.model.entity.Questions;
-import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
+import com.achobeta.themis.domain.chat.model.entity.QuestionsForDataInserted;
 import com.achobeta.themis.domain.user.repo.ITestRepository;
 import com.achobeta.themis.infrastructure.user.mapper.TestMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

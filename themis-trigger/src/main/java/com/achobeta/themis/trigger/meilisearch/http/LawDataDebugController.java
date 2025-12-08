@@ -1,11 +1,10 @@
 package com.achobeta.themis.trigger.meilisearch.http;
 
 import com.achobeta.themis.common.component.entity.LawDocument;
-import com.achobeta.themis.common.util.IKPreprocessorUtil;
-import com.achobeta.themis.domain.user.model.entity.LawCategory;
-import com.achobeta.themis.domain.user.model.entity.LawRegulation;
-import com.achobeta.themis.infrastructure.user.mapper.LawCategoryMapper;
-import com.achobeta.themis.infrastructure.user.mapper.LawRegulationMapper;
+import com.achobeta.themis.domain.laws.model.entity.LawCategory;
+import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
+import com.achobeta.themis.domain.laws.service.ILawCategoryService;
+import com.achobeta.themis.domain.laws.service.ILawRegulationService;
 import com.alibaba.fastjson.JSON;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Index;
@@ -29,8 +28,8 @@ import java.util.*;
 public class LawDataDebugController {
     
     private final Client meiliSearchClient;
-    private final LawCategoryMapper lawCategoryMapper;
-    private final LawRegulationMapper lawRegulationMapper;
+    private final ILawCategoryService lawCategoryService;
+    private final ILawRegulationService lawRegulationService;
     
     /**
      * 检查 law_documents 索引状态
@@ -97,9 +96,9 @@ public class LawDataDebugController {
         try {
             // 创建测试文档
             LawDocument testDoc = LawDocument.builder()
-                    .id(99999)
+                    .id(99999L)
                     .lawName("测试法律")
-                    .lawCategoryId(1)
+                    .lawCategoryId(1L)
                     .articleNumber(1)
                     .originalText("这是一条测试法条")
                     .originalTextSegmented("这是 一条 测试 法条")
@@ -167,8 +166,8 @@ public class LawDataDebugController {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            List<LawCategory> categories = lawCategoryMapper.selectList(null);
-            List<LawRegulation> regulations = lawRegulationMapper.selectList(null);
+            List<LawCategory> categories = lawCategoryService.queryLawCategoryList();
+            List<LawRegulation> regulations = lawRegulationService.queryLawRegulationList();
             
             result.put("分类数量", categories == null ? 0 : categories.size());
             result.put("条文数量", regulations == null ? 0 : regulations.size());

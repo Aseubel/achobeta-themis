@@ -5,7 +5,7 @@ import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
 import com.achobeta.themis.common.agent.tool.MeilisearchTool;
 import com.achobeta.themis.common.agent.tool.TavilyTool;
 import com.achobeta.themis.common.agent.service.IAiChatService;
-import com.achobeta.themis.infrastructure.user.repo.RedisChatMemoryStore;
+import com.achobeta.themis.infrastructure.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;

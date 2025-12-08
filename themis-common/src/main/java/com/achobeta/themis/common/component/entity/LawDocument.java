@@ -12,7 +12,7 @@ public class LawDocument {
     /**
      * 法条唯一ID (regulation_id)
      */
-    private Integer id;
+    private Long id;
     
     /**
      * 法律分类名称 (law_name)
@@ -22,7 +22,7 @@ public class LawDocument {
     /**
      * 法律分类ID (law_category_id)
      */
-    private Integer lawCategoryId;
+    private Long lawCategoryId;
     
     /**
      * 条款号 (article_number)

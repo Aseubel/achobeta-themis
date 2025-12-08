@@ -1,7 +1,7 @@
 package com.achobeta.themis.domain.user.service.impl;
 
 import com.achobeta.themis.common.redis.service.IRedisService;
-import com.achobeta.themis.domain.user.model.entity.KnowledgeSearchRecord;
+import com.achobeta.themis.domain.laws.model.entity.KnowledgeSearchRecord;
 import com.achobeta.themis.domain.user.service.IKnowledgeSearchHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

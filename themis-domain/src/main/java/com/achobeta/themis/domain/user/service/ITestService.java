@@ -1,7 +1,6 @@
 package com.achobeta.themis.domain.user.service;
 
-import com.achobeta.themis.domain.user.model.entity.Questions;
-import com.achobeta.themis.domain.user.model.entity.QuestionsForDataInserted;
+import com.achobeta.themis.domain.chat.model.entity.QuestionsForDataInserted;
 
 import java.util.List;
 
