@@ -18,6 +18,6 @@ public class LawCategoryService implements ILawCategoryService {
 
     @Override
     public List<LawCategory> queryLawCategoryList() {
-        return lawCategoryRepository.list();
+        return lawCategoryRepository.listLawCategories();
     }
 }

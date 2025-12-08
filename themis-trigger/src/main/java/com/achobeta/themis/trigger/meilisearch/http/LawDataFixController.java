@@ -6,6 +6,8 @@ import com.achobeta.themis.domain.laws.model.entity.LawCategory;
 import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
 import com.achobeta.themis.domain.laws.repo.ILawCategoryRepository;
 import com.achobeta.themis.domain.laws.repo.ILawRegulationRepository;
+import com.achobeta.themis.domain.laws.service.ILawCategoryService;
+import com.achobeta.themis.domain.laws.service.ILawRegulationService;
 import com.alibaba.fastjson.JSON;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Index;
@@ -31,8 +33,8 @@ import java.util.Map;
 public class LawDataFixController {
     
     private final Client meiliSearchClient;
-    private final ILawCategoryRepository lawCategoryRepository;
-    private final ILawRegulationRepository lawRegulationRepository;
+    private final ILawCategoryService lawCategoryService;
+    private final ILawRegulationService lawRegulationService;
     
     /**
      * 检查索引配置
@@ -120,8 +122,8 @@ public class LawDataFixController {
             log.info("开始重新导入数据...");
             
             // 1. 查询数据
-            List<LawCategory> categories = lawCategoryRepository.listLawCategories();
-            List<LawRegulation> regulations = lawRegulationRepository.listLawRegulations();
+            List<LawCategory> categories = lawCategoryService.queryLawCategoryList();
+            List<LawRegulation> regulations = lawRegulationService.queryLawRegulationList();
             
             if (categories == null || categories.isEmpty() || regulations == null || regulations.isEmpty()) {
                 result.put("状态", "失败");
@@ -211,8 +213,8 @@ public class LawDataFixController {
         
         try {
             // 1. 查询数据库数据
-            List<LawCategory> categories = lawCategoryRepository.listLawCategories();
-            List<LawRegulation> regulations = lawRegulationRepository.listLawRegulations();
+            List<LawCategory> categories = lawCategoryService.queryLawCategoryList();
+            List<LawRegulation> regulations = lawRegulationService.queryLawRegulationList();
             
             // 2. 统计数据
             long nationalCategories = categories.stream().filter(c -> c.getCategoryType() == 1).count();

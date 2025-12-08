@@ -5,6 +5,8 @@ import com.achobeta.themis.domain.laws.model.entity.LawCategory;
 import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
 import com.achobeta.themis.domain.laws.repo.ILawCategoryRepository;
 import com.achobeta.themis.domain.laws.repo.ILawRegulationRepository;
+import com.achobeta.themis.domain.laws.service.ILawCategoryService;
+import com.achobeta.themis.domain.laws.service.ILawRegulationService;
 import com.alibaba.fastjson.JSON;
 import com.meilisearch.sdk.Client;
 import com.meilisearch.sdk.Index;
@@ -28,8 +30,8 @@ import java.util.*;
 public class LawDataDebugController {
     
     private final Client meiliSearchClient;
-    private final ILawCategoryRepository lawCategoryRepository;
-    private final ILawRegulationRepository lawRegulationRepository;
+    private final ILawCategoryService lawCategoryService;
+    private final ILawRegulationService lawRegulationService;
     
     /**
      * 检查 law_documents 索引状态
@@ -166,8 +168,8 @@ public class LawDataDebugController {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            List<LawCategory> categories = lawCategoryRepository.listLawCategories();
-            List<LawRegulation> regulations = lawRegulationRepository.listLawRegulations();
+            List<LawCategory> categories = lawCategoryService.queryLawCategoryList();
+            List<LawRegulation> regulations = lawRegulationService.queryLawRegulationList();
             
             result.put("分类数量", categories == null ? 0 : categories.size());
             result.put("条文数量", regulations == null ? 0 : regulations.size());

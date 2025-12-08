@@ -18,6 +18,6 @@ public class LawRegulationService implements ILawRegulationService {
 
     @Override
     public List<LawRegulation> queryLawRegulationList() {
-        return lawRegulationRepository.list();
+        return lawRegulationRepository.listLawRegulations();
     }
 }
