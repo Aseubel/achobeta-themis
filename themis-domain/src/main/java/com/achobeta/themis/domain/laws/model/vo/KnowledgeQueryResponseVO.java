@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.vo;
+package com.achobeta.themis.domain.laws.model.vo;
 
 import com.achobeta.themis.common.component.entity.LawDocument;
 import lombok.AllArgsConstructor;

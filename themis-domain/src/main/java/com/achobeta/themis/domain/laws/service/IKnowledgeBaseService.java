@@ -1,6 +1,6 @@
 package com.achobeta.themis.domain.laws.service;
 
-import com.achobeta.themis.domain.user.model.vo.KnowledgeBaseQueryResponseVO;
+import com.achobeta.themis.domain.laws.model.vo.KnowledgeBaseQueryResponseVO;
 
 import java.util.List;
 

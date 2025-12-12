@@ -6,7 +6,7 @@ import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.chat.model.entity.ConversationMeta;
-import com.achobeta.themis.domain.user.model.vo.ChatRequestVO;
+import com.achobeta.themis.api.chat.request.ChatRequestVO;
 import com.achobeta.themis.domain.user.model.vo.QuestionTitleResponseVO;
 import com.achobeta.themis.domain.review.service.IAdjudicatorService;
 import com.achobeta.themis.domain.chat.service.IChatService;

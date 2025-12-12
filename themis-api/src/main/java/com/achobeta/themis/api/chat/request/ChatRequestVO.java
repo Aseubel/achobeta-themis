@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.vo;
+package com.achobeta.themis.api.chat.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

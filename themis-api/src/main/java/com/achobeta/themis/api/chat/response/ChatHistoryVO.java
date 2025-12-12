@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.model.vo;
+package com.achobeta.themis.api.chat.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -9,7 +9,7 @@ import com.achobeta.themis.domain.user.model.UserModel;
 import com.achobeta.themis.api.review.request.ReviewRequest;
 import com.achobeta.themis.api.review.response.ReviewResult;
 import com.achobeta.themis.api.review.response.fileReturn;
-import com.achobeta.themis.domain.user.model.vo.ChatHistoryVO;
+import com.achobeta.themis.api.chat.response.ChatHistoryVO;
 import com.achobeta.themis.api.review.request.DownLoadFileRequest;
 import com.achobeta.themis.api.review.response.FileReviewRecordVO;
 import com.achobeta.themis.api.review.request.SaveFileReviewRecordRequestVO;
