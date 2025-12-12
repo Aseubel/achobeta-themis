@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.chat.service.impl;
 
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;

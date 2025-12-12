@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.user.service;
+package com.achobeta.themis.domain.laws.service;
 
 public interface ILawDataImportService {
     /**

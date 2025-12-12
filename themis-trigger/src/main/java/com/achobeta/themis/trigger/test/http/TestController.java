@@ -3,6 +3,7 @@ package com.achobeta.themis.trigger.test.http;
 import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
+import com.achobeta.themis.domain.review.service.IAdjudicatorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class TestController {
     private final UserClient userClient;
     private final com.achobeta.themis.domain.user.service.IUserService userService;
     private final com.achobeta.themis.domain.user.service.ITestService testService;
-    private final com.achobeta.themis.domain.user.service.IAdjudicatorService adjudicatorService;
+    private final IAdjudicatorService adjudicatorService;
 
     @GetMapping("/getUserInfo")
     public ApiResponse<UserInfoResponse> getUserInfo(@RequestParam("userId") Long userId) {

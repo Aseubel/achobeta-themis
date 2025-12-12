@@ -1,9 +1,9 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.laws.service.impl;
 
 import com.achobeta.themis.domain.laws.model.entity.LawRegulation;
 import com.achobeta.themis.domain.user.model.vo.UserFavoriteRegulationVO;
 import com.achobeta.themis.domain.user.repo.IUserFavoriteRegulationRepository;
-import com.achobeta.themis.domain.user.service.IUserFavoriteRegulationService;
+import com.achobeta.themis.domain.laws.service.IUserFavoriteRegulationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

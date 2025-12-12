@@ -1,7 +1,7 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.laws.service.impl;
 
 import com.achobeta.themis.domain.laws.repo.ILawDataImportRepository;
-import com.achobeta.themis.domain.user.service.ILawDataImportService;
+import com.achobeta.themis.domain.laws.service.ILawDataImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

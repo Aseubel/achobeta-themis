@@ -1,11 +1,11 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.laws.service.impl;
 
 import com.achobeta.themis.common.component.entity.LawDocument;
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
 import com.achobeta.themis.domain.laws.repo.IKnowledgeQueryRepository;
 import com.achobeta.themis.domain.chat.service.IConversationHistoryService;
-import com.achobeta.themis.domain.user.service.IKnowledgeQueryService;
-import com.achobeta.themis.domain.user.service.IKnowledgeSearchHistoryService;
+import com.achobeta.themis.domain.laws.service.IKnowledgeQueryService;
+import com.achobeta.themis.domain.laws.service.IKnowledgeSearchHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

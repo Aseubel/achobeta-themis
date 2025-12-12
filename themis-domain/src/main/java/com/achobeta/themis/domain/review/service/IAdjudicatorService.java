@@ -1,6 +1,4 @@
-package com.achobeta.themis.domain.user.service;
-
-import java.util.List;
+package com.achobeta.themis.domain.review.service;
 
 public interface IAdjudicatorService {
     /**

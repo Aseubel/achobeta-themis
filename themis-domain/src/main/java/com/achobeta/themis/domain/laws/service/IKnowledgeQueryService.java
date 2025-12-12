@@ -1,10 +1,7 @@
-package com.achobeta.themis.domain.user.service;
+package com.achobeta.themis.domain.laws.service;
 
 import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryRequestVO;
-import com.achobeta.themis.domain.user.model.vo.KnowledgeQueryResponseVO;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Map;
 
 /**

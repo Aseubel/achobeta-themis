@@ -1,10 +1,10 @@
-package com.achobeta.themis.domain.user.service.impl;
+package com.achobeta.themis.domain.review.service.impl;
 
 import com.achobeta.themis.common.agent.service.IAiAdjudicatorService;
 import com.achobeta.themis.common.component.MeiliSearchComponent;
 import com.achobeta.themis.common.component.entity.QuestionTitleDocument;
 import com.achobeta.themis.common.util.IKPreprocessorUtil;
-import com.achobeta.themis.domain.user.service.IAdjudicatorService;
+import com.achobeta.themis.domain.review.service.IAdjudicatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

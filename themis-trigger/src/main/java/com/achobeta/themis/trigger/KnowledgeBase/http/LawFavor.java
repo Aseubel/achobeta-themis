@@ -4,7 +4,7 @@ import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.annotation.LoginRequired;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.user.model.vo.UserFavoriteRegulationVO;
-import com.achobeta.themis.domain.user.service.IUserFavoriteRegulationService;
+import com.achobeta.themis.domain.laws.service.IUserFavoriteRegulationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
