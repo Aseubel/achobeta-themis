@@ -3,7 +3,7 @@ package com.achobeta.themis.trigger.user.http;
 import com.achobeta.themis.api.user.client.UserClient;
 import com.achobeta.themis.api.user.response.UserInfoResponse;
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.annotation.LoginRequired;
+import com.achobeta.themis.common.annotation.constraint.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.user.model.vo.*;
 import com.achobeta.themis.domain.user.model.UserModel;

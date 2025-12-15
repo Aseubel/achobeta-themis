@@ -1,4 +1,4 @@
-package com.achobeta.themis.common.annotation;
+package com.achobeta.themis.common.annotation.constraint;
 
 import java.lang.annotation.*;
 

@@ -2,7 +2,7 @@ package com.achobeta.themis.trigger.KnowledgeBase.http;
 
 import com.achobeta.themis.common.ApiResponse;
 import com.achobeta.themis.common.agent.service.IAiKnowledgeService;
-import com.achobeta.themis.common.annotation.LoginRequired;
+import com.achobeta.themis.common.annotation.constraint.LoginRequired;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.laws.model.entity.KnowledgeSearchRecord;
 import com.achobeta.themis.domain.chat.service.IConversationHistoryService;

@@ -1,7 +1,7 @@
 package com.achobeta.themis.trigger.knowledgebs.http;
 
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.annotation.LoginRequired;
+import com.achobeta.themis.common.annotation.constraint.LoginRequired;
 import com.achobeta.themis.common.exception.BusinessException;
 import com.achobeta.themis.domain.laws.model.vo.KnowledgeBaseQueryResponseVO;
 import com.achobeta.themis.domain.laws.service.IKnowledgeBaseService;

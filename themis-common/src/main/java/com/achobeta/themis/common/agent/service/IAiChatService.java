@@ -13,7 +13,6 @@ public interface IAiChatService {
      * @param message 消息
      * @return 响应流
      */
-
     Flux<String> chat(@MemoryId String memoryId, @UserMessage String message);
 
 

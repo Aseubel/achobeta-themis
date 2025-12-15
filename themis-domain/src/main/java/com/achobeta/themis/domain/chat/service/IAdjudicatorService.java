@@ -1,4 +1,4 @@
-package com.achobeta.themis.domain.review.service;
+package com.achobeta.themis.domain.chat.service;
 
 public interface IAdjudicatorService {
     /**

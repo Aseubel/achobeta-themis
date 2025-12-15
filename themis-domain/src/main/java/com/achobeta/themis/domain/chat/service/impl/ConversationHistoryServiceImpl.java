@@ -1,4 +1,4 @@
-package com.achobeta.themis.infrastructure.chat.repo;
+package com.achobeta.themis.domain.chat.service.impl;
 
 import com.achobeta.themis.common.redis.service.IRedisService;
 import com.achobeta.themis.domain.chat.model.entity.ConversationMeta;

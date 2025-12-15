@@ -1,7 +1,7 @@
 package com.achobeta.themis.trigger.KnowledgeBase.http;
 
 import com.achobeta.themis.common.ApiResponse;
-import com.achobeta.themis.common.annotation.LoginRequired;
+import com.achobeta.themis.common.annotation.constraint.LoginRequired;
 import com.achobeta.themis.common.util.SecurityUtils;
 import com.achobeta.themis.domain.user.model.vo.UserFavoriteRegulationVO;
 import com.achobeta.themis.domain.laws.service.IUserFavoriteRegulationService;

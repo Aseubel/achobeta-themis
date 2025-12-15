@@ -1,4 +1,16 @@
 package com.achobeta.themis.interceptor;
+
+import com.achobeta.themis.common.exception.AuthenticationException;
+import com.achobeta.themis.common.util.JwtUtil;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 /**
  * <p>
  * 描述：具体登录检查切面类
@@ -7,20 +19,6 @@ package com.achobeta.themis.interceptor;
  * @Author: ZGjie20
  * @version: 1.0.0
  */
-import com.achobeta.themis.common.annotation.LoginRequired;
-import com.achobeta.themis.common.exception.AuthenticationException;
-import com.achobeta.themis.common.exception.UnauthorizedException;
-import com.achobeta.themis.common.util.JwtUtil;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
 @Aspect
 @Component
 public class LoginCheckAspect {
@@ -29,7 +27,7 @@ public class LoginCheckAspect {
     @Resource
     private JwtUtil jwtUtil;
 
-    @Around("@annotation(com.achobeta.themis.common.annotation.LoginRequired) || @within(com.achobeta.themis.common.annotation.LoginRequired)")
+    @Around("@annotation(com.achobeta.themis.common.annotation.constraint.LoginRequired) || @within(com.achobeta.themis.common.annotation.constraint.LoginRequired)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attrs != null ? attrs.getRequest() : null;
