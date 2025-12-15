@@ -50,6 +50,8 @@ public class AgentConfig {
                 .baseUrl(agentConfigProperties.getBaseUrl())
                 .apiKey(agentConfigProperties.getApiKey())
                 .modelName(agentConfigProperties.getModel())
+                .maxCompletionTokens(512)
+                .temperature(0.2)
                 .build();
 
         return AiServices.builder(IAiChatService.class)
@@ -58,7 +60,7 @@ public class AgentConfig {
                       MessageWindowChatMemory memory = MessageWindowChatMemory.builder()
                               .chatMemoryStore(redisChatMemoryStore)
                               .id(conversationId)
-                              .maxMessages(100)
+                              .maxMessages(10)
                               .build();
 
                       boolean hasSystemMessage = memory.messages().stream()
@@ -86,6 +88,8 @@ public class AgentConfig {
                 .modelName(agentConfigProperties.getModel())
                 .logRequests(true)
                 .logResponses(true)
+                .maxCompletionTokens(2048)
+                .temperature(0.2)
                 .build();
         return AiServices.builder(IAiKnowledgeService.class)
                 .chatModel(model)
@@ -118,6 +122,8 @@ public class AgentConfig {
                 .modelName(agentConfigProperties.getModel())
                 .logRequests(true)
                 .logResponses(true)
+                .maxCompletionTokens(256)
+                .temperature(0.2)
                 .build();
         return AiServices.builder(IAiAdjudicatorService.class)
                 .chatModel(model)

@@ -91,7 +91,7 @@ meilisearch:
 
 logging:
   level:
-    root: info
+    root: debug
   config: classpath:logback-spring.xml
 
 # Langchain4j 配置
